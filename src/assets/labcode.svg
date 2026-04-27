@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 150" width="100%" height="100%">
+  <defs>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5AA00" />
+      <stop offset="100%" stop-color="#C39000" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(20, 35)">
+    <polyline points="35,25 15,50 35,75" fill="none" stroke="url(#primaryGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="55" y1="15" x2="40" y2="85" stroke="url(#primaryGrad)" stroke-width="8" stroke-linecap="round"/>
+    <polyline points="65,25 85,50 65,75" fill="none" stroke="url(#primaryGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="75" cy="5" r="6" fill="#C39000" opacity="0.8">
+      <animate attributeName="cy" values="5;-5;5" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="50" cy="-8" r="4" fill="#C39000" opacity="0.6">
+      <animate attributeName="cy" values="-8;-15;-8" dur="2.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="25" cy="0" r="5" fill="#C39000" opacity="0.9">
+      <animate attributeName="cy" values="0;-10;0" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.9;0.5;0.9" dur="4s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <text x="130" y="100" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="62" font-weight="800" fill="#2D3748" letter-spacing="-1">
+    Lab<tspan fill="#C39000">Code</tspan>
+  </text>
+</svg>

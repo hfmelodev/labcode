@@ -120,13 +120,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Se o botão não estiver desabilitado, o cursor será do tipo pointer. */
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
   html {
     @apply font-mono;
   }
