@@ -12,6 +12,8 @@
     "tunnel": "bash -lc 'source .env && cloudflared tunnel run --token \"$CLOUDFLARE_TUNNEL_TOKEN\"'"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.5.5",
+    "@clerk/nextjs": "^7.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.11.0",
