@@ -1,3 +1,6 @@
+'use client'
+
+import { useUser } from '@clerk/nextjs'
 import { BookOpen, BookUp2, ChartArea, MessageCircle, SquareDashedBottomCode, Trophy, Users } from 'lucide-react'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
@@ -10,6 +13,10 @@ type NavItem = {
 }
 
 export function NavItems() {
+  const { user } = useUser()
+
+  const isUserAdmin = user?.publicMetadata.role === 'admin'
+
   const navItems: NavItem[] = [
     {
       label: 'Cursos',
@@ -69,9 +76,13 @@ export function NavItems() {
       <SidebarMenu>
         {renderNavItems(navItems)}
 
-        <Separator className="my-2" />
+        {isUserAdmin && (
+          <>
+            <Separator className="my-2" />
 
-        {renderNavItems(adminNavItems)}
+            {renderNavItems(adminNavItems)}
+          </>
+        )}
       </SidebarMenu>
     </SidebarGroup>
   )

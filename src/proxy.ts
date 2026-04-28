@@ -1,6 +1,17 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
-export default clerkMiddleware()
+// Verifica se a rota atual é admin
+const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+
+export default clerkMiddleware(async (auth, req) => {
+  // Se a rota atual for /admin e o usuário atual não for admin redireciona para a home /
+  if (isAdminRoute(req) && (await auth()).sessionClaims?.metadata.role !== 'admin') {
+    const url = new URL('/', req.url)
+
+    return NextResponse.redirect(url)
+  }
+})
 
 export const config = {
   matcher: [
