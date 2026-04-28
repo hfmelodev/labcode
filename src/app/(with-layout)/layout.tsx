@@ -1,3 +1,6 @@
+'use client'
+
+import { useUser } from '@clerk/nextjs'
 import { LogIn } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -7,6 +10,8 @@ import { AppSidebar } from './_components/shared/app-sidebar'
 import { SearchInput } from './_components/shared/search-input'
 
 export default function WithLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useUser()
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -21,11 +26,13 @@ export default function WithLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-2">
             <ModeToggle />
 
-            <Link href="/auth/sign-in" className="flex items-center gap-2">
-              <Button size="sm">
-                <LogIn /> Entrar
-              </Button>
-            </Link>
+            {!user && (
+              <Link href="/auth/sign-in" className="flex items-center gap-2">
+                <Button size="sm">
+                  <LogIn /> Entrar
+                </Button>
+              </Link>
+            )}
           </div>
         </header>
 
