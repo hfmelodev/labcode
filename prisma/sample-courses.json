@@ -155,8 +155,8 @@
     "shortDescription": "Atualize seus conhecimentos com as últimas funcionalidades do JavaScript.",
     "description": "Atualize seus conhecimentos com as últimas funcionalidades do JavaScript.",
     "thumbnail": "/sample-courses/javascript-moderno.png",
-    "price": 18000,
-    "discountPrice": 15000,
+    "price": 180,
+    "discountPrice": 150,
     "tags": ["JavaScript", "ES6", "Frontend"],
     "modules": [
       {

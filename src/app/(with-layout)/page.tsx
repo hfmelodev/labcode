@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button'
+import { CourseTagsList } from './_components/pages/courses/tags-list'
 
 export default function Home() {
   return (
     <>
-      <Button className="w-full">Button</Button>
+      <CourseTagsList />
     </>
   )
 }

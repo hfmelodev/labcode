@@ -134,4 +134,8 @@
   html {
     @apply font-mono;
   }
+
+  .scroll-hidden::-webkit-scrollbar {
+    @apply hidden;
+  }
 }

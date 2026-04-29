@@ -36,7 +36,7 @@ export default function WithLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
 
-        <div className="flex flex-1 gap-6 overflow-auto p-6">{children}</div>
+        <div className="flex flex-1 flex-col gap-6 overflow-auto p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )
