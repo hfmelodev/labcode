@@ -16,6 +16,7 @@ export function TagItem({ tag }: TagItemProps) {
   const searchParams = useSearchParams()
 
   const currentIds = searchParams.getAll('tags')
+  const currentQuery = searchParams.get('query')
 
   const isSelected = currentIds.includes(tag.id)
 
@@ -24,6 +25,7 @@ export function TagItem({ tag }: TagItemProps) {
       {
         url: pathname,
         query: {
+          query: currentQuery,
           tags: isSelected ? currentIds.filter(id => id !== tag.id) : [...currentIds, tag.id],
         },
       },

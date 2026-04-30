@@ -20,6 +20,9 @@
     "rules": {
       "complexity": "off",
       "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "off"
+      },
       "suspicious": {
         "noShadowRestrictedNames": "off",
         "noExplicitAny": "off",

@@ -3,6 +3,7 @@
 import { useUser } from '@clerk/nextjs'
 import { LogIn } from 'lucide-react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/ui/mode-toggle'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
@@ -20,7 +21,9 @@ export default function WithLayout({ children }: { children: React.ReactNode }) 
         <header className="flex h-20 shrink-0 items-center justify-between gap-2 border-b px-6">
           <div className="flex flex-1 items-center gap-4">
             <SidebarTrigger className="-ml-1" />
-            <SearchInput />
+            <Suspense>
+              <SearchInput />
+            </Suspense>
           </div>
 
           <div className="flex items-center gap-2">
