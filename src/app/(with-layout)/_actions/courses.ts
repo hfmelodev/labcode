@@ -50,3 +50,29 @@ export async function getCourses({ query, tags: rawTags }: GetCoursesPayload) {
 
   return courses
 }
+
+export async function getCourseBySlugOrId(query: string, queryType: 'slug' | 'id' = 'slug') {
+  const course = await prisma.course.findUnique({
+    where: {
+      slug: queryType === 'slug' ? query : undefined,
+      id: queryType === 'id' ? query : undefined,
+    },
+    include: {
+      modules: {
+        include: {
+          lessons: {
+            orderBy: {
+              order: 'asc',
+            },
+          },
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+      tags: true,
+    },
+  })
+
+  return { course }
+}
