@@ -3,10 +3,12 @@ import { Calendar, Camera, ChartColumnIncreasing, CirclePlay, Clock, LayoutDashb
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getCourseBySlugOrId } from '@/app/(with-layout)/_actions/courses'
+import { CourseProgress } from '@/app/(with-layout)/_components/pages/courses/course-details/course-progress'
+import { BackButton } from '@/components/app/back-button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { formatDifficulty, formatDuration } from '@/lib/utils'
+import { cn, formatDifficulty, formatDuration } from '@/lib/utils'
 
 type CourseDetailsPageProps = {
   params: Promise<{ slug: string }>
@@ -19,12 +21,12 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
   if (!course) return notFound()
 
-  // Calcula a duração total das aulas
+  // Calcula a duração total das aulas do curso
   const totalDuration = course.modules.reduce((acc, mod) => {
     return acc + mod.lessons.reduce((acc, lesson) => acc + lesson.durationInMs, 0)
   }, 0)
 
-  // Calcula o número total de aulas
+  // Calcula o número total de aulas do curso
   const totalLessons = course.modules.reduce((acc, mod) => acc + mod.lessons.length, 0)
 
   const details = [
@@ -54,7 +56,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     <section className="flex flex-col">
       <div className="flex flex-col justify-between gap-6 md:flex-row">
         <div>
-          <p>BACK BUTTON</p>
+          <BackButton />
 
           <h1 className="mt-6 font-bold text-3xl sm:text-4xl">{course.title}</h1>
 
@@ -81,6 +83,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       <Separator className="my-6" />
 
       <div className="grid w-full gap-10 md:grid-cols-[1fr_400px]">
+        {/*Left side*/}
         <Tabs defaultValue="overview">
           <TabsList className="w-full md:max-w-[300px]">
             <TabsTrigger value="overview">
@@ -113,9 +116,35 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
               ))}
             </div>
           </TabsContent>
-          <TabsContent value="content">Conteúdo</TabsContent>
+          <TabsContent value="content" className="mt-4 flex flex-col gap-6">
+            {course.modules.map((mod, index) => (
+              <div key={mod.id} className="flex items-center gap-4 bg-muted p-4">
+                <div
+                  className={cn(
+                    'flex h-12 w-12 min-w-12 items-center justify-center border-2 border-primary',
+                    'rounded-full bg-primary/10 font-bold text-2xl text-primary'
+                  )}
+                >
+                  {index + 1}
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold sm:text-xl">{mod.title}</p>
+                    <Badge variant="outline">
+                      {mod.lessons.length} aula{mod.lessons.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+
+                  {!!mod.description && <p className="mt-1 text-muted-foreground text-sm sm:text-base">{mod.description}</p>}
+                </div>
+              </div>
+            ))}
+          </TabsContent>
         </Tabs>
-        <div>right</div>
+
+        {/*Right side*/}
+        <CourseProgress course={course} />
       </div>
     </section>
   )
