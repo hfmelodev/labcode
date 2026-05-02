@@ -1,11 +1,20 @@
+'use client'
+
+import { PanelRightOpen } from 'lucide-react'
 import Link from 'next/link'
 import { BackButton } from '@/components/app/back-button'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Tooltip } from '@/components/ui/tooltip'
+import { usePreferencesStore } from '@/stores/preferences'
 
 type TopDetailsProps = {
   course: Course
 }
 
 export function TopDetails({ course }: TopDetailsProps) {
+  const { autoplay, setAutoplay, setModulesListCollapsed } = usePreferencesStore()
+
   return (
     <div className="sticky top-0 z-10 flex w-full items-center gap-4 border-border border-b bg-sidebar p-4 sm:gap-6 sm:p-6">
       <BackButton />
@@ -26,7 +35,16 @@ export function TopDetails({ course }: TopDetailsProps) {
 
       <div className="ml-auto flex items-center gap-4">
         {/* Switch de AutoPlay */}
-        {/* Ícone para abrir o painel de módulos somente no mobile */}
+        <Tooltip content="Ativar AutoPlay">
+          <div className="flex items-center gap-2">
+            <p className="block text-xs sm:hidden">AutoPlay</p>
+            <Switch checked={autoplay} onCheckedChange={checked => setAutoplay(checked)} />
+          </div>
+        </Tooltip>
+
+        <Button size="icon" variant="outline" className="flex sm:hidden" onClick={() => setModulesListCollapsed(false)}>
+          <PanelRightOpen />
+        </Button>
       </div>
     </div>
   )

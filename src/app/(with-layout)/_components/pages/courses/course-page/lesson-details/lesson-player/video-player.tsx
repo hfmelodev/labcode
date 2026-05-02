@@ -13,7 +13,7 @@ type VideoPlayerProps = {
 
 function VideoPlayer({ videoId, autoPlay }: VideoPlayerProps) {
   // Verifica se o usuário já interagiu com a página
-  const userAlreadyInteracted = navigator.userActivation?.hasBeenActive ?? false
+  const userAlreadyInteracted = navigator.userActivation?.hasBeenActive
 
   return (
     <MediaPlayer title="Vídeo da Aula" src={`youtube/${videoId}`} autoPlay={autoPlay && userAlreadyInteracted}>

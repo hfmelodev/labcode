@@ -1,5 +1,6 @@
 import { CircleCheckBig, CircleX, Film } from 'lucide-react'
 import Link from 'next/link'
+import { Tooltip } from '@/components/ui/tooltip'
 import { cn, formatDuration } from '@/lib/utils'
 
 type LessonItemProps = {
@@ -23,10 +24,12 @@ export function LessonItem({ lesson }: LessonItemProps) {
         completed && 'text-primary'
       )}
     >
-      <button type="button" className="group/lesson-button relative h-4 w-4 min-w-4">
-        <PrimaryIcon className="h-full w-full opacity-100 transition-all group-hover/lesson-button:opacity-0" />
-        <SecondaryIcon className="absolute inset-0 h-full w-full opacity-0 transition-all group-hover/lesson-button:opacity-100" />
-      </button>
+      <Tooltip content={completed ? 'Marcar como não assistido' : 'Marcar como assistido'}>
+        <button type="button" className="group/lesson-button relative h-4 w-4 min-w-4">
+          <PrimaryIcon className="h-full w-full opacity-100 transition-all group-hover/lesson-button:opacity-0" />
+          <SecondaryIcon className="absolute inset-0 h-full w-full opacity-0 transition-all group-hover/lesson-button:opacity-100" />
+        </button>
+      </Tooltip>
       <p className="line-clamp-1">{lesson.title}</p>
       <p className="ml-auto text-muted-foreground text-xs">{formatDuration(lesson.durationInMs, true)}</p>
     </Link>
