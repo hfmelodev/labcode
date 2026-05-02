@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getCourseBySlugOrId } from '../../_actions/courses'
 import { LessonDetails } from '../../_components/pages/courses/course-page/lesson-details'
+import { ModulesList } from '../../_components/pages/courses/course-page/modules-list'
 import { TopDetails } from '../../_components/pages/courses/course-page/top-details'
 
 type CoursePageProps = {
@@ -23,10 +24,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
       <div className="h-full w-full overflow-y-auto">
         <TopDetails course={course} />
 
+        {/* Exibe o vídeo da aula atual */}
         <LessonDetails lesson={course.modules[0].lessons[0]} />
       </div>
 
-      {/* ModulesList */}
+      {/* Exibe a lista de módulos e aulas */}
+      <ModulesList modules={course.modules} />
     </div>
   )
 }
