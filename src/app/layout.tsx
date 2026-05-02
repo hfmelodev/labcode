@@ -1,10 +1,9 @@
 import { Geist, Geist_Mono } from 'next/font/google'
 
 import '../styles/globals.css'
-import { ptBR } from '@clerk/localizations'
-import { ClerkProvider } from '@clerk/nextjs'
-import { ThemeProvider } from '@/components/ui/theme-provider'
+
 import { cn } from '@/lib/utils'
+import { ClientProviders } from './(with-layout)/_components/shared/client-providers'
 
 const fontSans = Geist({
   subsets: ['latin'],
@@ -27,11 +26,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning className={cn('font-mono antialiased', fontSans.variable, geistMono.variable)}>
       <head />
       <body>
-        <ClerkProvider localization={ptBR}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
-        </ClerkProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   )
