@@ -1,20 +1,37 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { ChevronDown } from 'lucide-react'
+import { useMemo } from 'react'
 import { CircularProgress } from '@/components/app/circular-progress'
 import { cn, formatDuration } from '@/lib/utils'
 import { LessonItem } from './lesson-item'
 
 type ModuleItemProps = {
   data: CourseModuleWithLessons
+  completedLessons: CompletedLesson[]
 }
 
-export function ModuleItem({ data: courseModule }: ModuleItemProps) {
+export function ModuleItem({ data: courseModule, completedLessons }: ModuleItemProps) {
   const totalLessons = courseModule.lessons.length
   // Calcula a duração total do módulo em minutos
   const totalDuration = courseModule.lessons.reduce((total, lesson) => total + lesson.durationInMs, 0)
   const formattedDuration = formatDuration(totalDuration)
 
-  const moduleProgress = 23
+  // Verifica se a aula esta concluída ou não
+  const lessons = useMemo(() => {
+    return courseModule.lessons.map(lesson => {
+      const completed = completedLessons.some(completedLesson => completedLesson.lessonId === lesson.id)
+
+      return {
+        ...lesson,
+        completed: completed,
+      }
+    })
+  }, [completedLessons, courseModule.lessons])
+
+  const moduleProgress = useMemo(() => {
+    const completedModuleLessons = lessons.filter(lesson => lesson.completed).length
+    return Math.round((completedModuleLessons / totalLessons) * 100)
+  }, [lessons, totalLessons])
 
   return (
     <Accordion.Item value={courseModule.id} className="group border border-border">
@@ -43,7 +60,7 @@ export function ModuleItem({ data: courseModule }: ModuleItemProps) {
       </Accordion.Trigger>
       <Accordion.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
         <div className="flex flex-col gap-2 p-2">
-          {courseModule.lessons.map(lesson => (
+          {lessons.map(lesson => (
             <LessonItem key={lesson.id} lesson={lesson} />
           ))}
         </div>
