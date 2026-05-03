@@ -1,8 +1,7 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getCourseProgress } from '../../_actions/course-progress'
 import { getCourseBySlugOrId } from '../../_actions/courses'
-import { LessonDetails } from '../../_components/pages/courses/course-page/lesson-details'
-import { ModulesList } from '../../_components/pages/courses/course-page/modules-list'
-import { TopDetails } from '../../_components/pages/courses/course-page/top-details'
 
 type CoursePageProps = {
   params: Promise<{ slug: string }>
@@ -16,20 +15,25 @@ export default async function CoursePage({ params }: CoursePageProps) {
   if (!course) return notFound()
 
   // TODO: Verificar se o usuário está logado e se tem acesso ao curso
-  // TODO: Validar se é um módulo existente
-  // TODO: Validar se é uma aula existente
 
-  return (
-    <div className="grid h-screen w-full grid-cols-[1fr_auto] overflow-hidden">
-      <div className="h-full w-full overflow-y-auto">
-        <TopDetails course={course} />
+  const { completedLessons } = await getCourseProgress(slug)
 
-        {/* Exibe o vídeo da aula atual */}
-        <LessonDetails lesson={course.modules[0].lessons[0]} />
-      </div>
+  const allLessons = course.modules.flatMap(module => module.lessons)
 
-      {/* Exibe a lista de módulos e aulas */}
-      <ModulesList modules={course.modules} />
-    </div>
-  )
+  let lessonToRedirect = allLessons[0]
+
+  const firstUncompletedLesson = allLessons.find(lesson => {
+    const completed = completedLessons.some(completedLesson => completedLesson.lessonId === lesson.id)
+    return !completed
+  })
+
+  if (firstUncompletedLesson) {
+    lessonToRedirect = firstUncompletedLesson
+  }
+
+  if (lessonToRedirect) {
+    redirect(`/courses/${slug}/${lessonToRedirect.moduleId}/lesson/${lessonToRedirect.id}`)
+  }
+
+  return <Skeleton className="flex-1" />
 }

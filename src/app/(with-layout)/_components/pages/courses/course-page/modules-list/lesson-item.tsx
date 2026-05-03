@@ -15,13 +15,12 @@ type LessonItemProps = {
 }
 
 export function LessonItem({ lesson }: LessonItemProps) {
-  const params = useParams<{ slug: string }>()
-  const courseSlug = params.slug
+  const params = useParams<{ slug: string; lessonId: string }>()
+  const courseSlug = params.slug as string
+  const currentLessonId = params.lessonId as string
 
   const completed = lesson.completed
   const lessonId = lesson.id
-
-  const currentLessonId = 'cmojb8vy5000s1qmsys8404kr'
 
   const PrimaryIcon = completed ? CircleCheckBig : Film
   const SecondaryIcon = completed ? CircleX : CircleCheckBig
@@ -53,12 +52,11 @@ export function LessonItem({ lesson }: LessonItemProps) {
   const isLoading = isCompletingLesson || isUncompletingLesson
 
   return (
-    // TODO: Lembrar de trocar o course-slug e o module-id por variáveis
     <Link
-      href={`/courses/course-slug/module-id/lesson/${lesson.id}`}
+      href={`/courses/${courseSlug}/${lesson.moduleId}/lesson/${lesson.id}`}
       className={cn(
         'flex items-center gap-2 p-2 text-muted-foreground text-sm transition-colors hover:bg-muted',
-        lesson.id === currentLessonId && 'text-primary',
+        lesson.id === currentLessonId && 'font-bold text-foreground',
         completed && 'text-primary'
       )}
     >

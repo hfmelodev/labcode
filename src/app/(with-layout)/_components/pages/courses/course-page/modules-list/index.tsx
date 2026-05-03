@@ -17,10 +17,9 @@ type ModulesListProps = {
 }
 
 export function ModulesList({ modules }: ModulesListProps) {
-  const params = useParams<{ slug: string }>()
-  const courseSlug = params.slug
-
-  const moduleId = modules[0].id
+  const params = useParams<{ slug: string; moduleId: string }>()
+  const courseSlug = params.slug as string
+  const moduleId = params.moduleId as string
 
   const { expandedModule, setExpandedModule, modulesListCollapsed, setModulesListCollapsed } = usePreferencesStore()
 
