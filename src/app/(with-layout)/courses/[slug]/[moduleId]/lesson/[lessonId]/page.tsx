@@ -16,10 +16,18 @@ export default async function CoursePage({ params }: CoursePageProps) {
   if (!course) return notFound()
 
   // TODO: Verificar se o usuário está logado e se tem acesso ao curso
-  const currentModule = course.modules.find(module => module.id === moduleId)
-  const currentLesson = currentModule?.lessons.find(lesson => lesson.id === lessonId)
 
-  if (!currentModule || !currentLesson) return notFound()
+  const currentModule = course.modules.find(mod => mod.id === moduleId)
+  if (!currentModule) return notFound()
+
+  const allLessons = course.modules.flatMap(mod => mod.lessons)
+
+  const currentLessonIndex = allLessons.findIndex(lesson => lesson.id === lessonId && lesson.moduleId === moduleId)
+
+  const currentLesson = allLessons[currentLessonIndex]
+  const nextLesson = allLessons[currentLessonIndex + 1]
+
+  if (!currentLesson) return notFound()
 
   return (
     <div className="grid h-screen w-full grid-cols-[1fr_auto] overflow-hidden">
@@ -27,7 +35,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
         <TopDetails course={course} />
 
         {/* Exibe o vídeo da aula atual */}
-        <LessonDetails lesson={currentLesson} />
+        <LessonDetails lesson={currentLesson} nextLesson={nextLesson} />
       </div>
 
       {/* Exibe a lista de módulos e aulas */}

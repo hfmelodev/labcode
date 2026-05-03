@@ -1,7 +1,12 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
 import { ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
+import { getCourseProgress } from '@/app/(with-layout)/_actions/course-progress'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { queryKeys } from '@/constants/query-keys'
 import { formatPrice } from '@/lib/utils'
 
 type CourseProgressProps = {
@@ -10,7 +15,14 @@ type CourseProgressProps = {
 
 export function CourseProgress({ course }: CourseProgressProps) {
   const hasCourse = true
-  const progress = 45
+
+  const { data: courseProgress } = useQuery({
+    queryKey: queryKeys.courseProgress(course.slug),
+    queryFn: () => getCourseProgress(course.slug),
+    enabled: !!course.slug && hasCourse,
+  })
+
+  const progress = courseProgress?.progress ?? 0
 
   return (
     <aside className="sticky top-0 max-h-max bg-muted p-6">
