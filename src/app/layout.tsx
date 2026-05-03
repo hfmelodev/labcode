@@ -19,6 +19,12 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 export const metadata = {
   title: 'LabCode',
   description: 'Desenvolvimento e Software',
+  icons: {
+    icon: '/labcode-icon.svg',
+    link: '/labcode-icon.svg',
+    'apple-touch-icon': '/labcode-icon.svg',
+    'apple-touch-icon-precomposed': '/labcode-icon.svg',
+  },
 }
 
 export default function RootLayout({
