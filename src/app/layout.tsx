@@ -2,8 +2,12 @@ import { Geist, Geist_Mono } from 'next/font/google'
 
 import '../styles/globals.css'
 
+import { setDefaultOptions } from 'date-fns'
+import { ptBR as ptBRDateFns } from 'date-fns/locale/pt-BR'
 import { cn } from '@/lib/utils'
 import { ClientProviders } from './(with-layout)/_components/shared/client-providers'
+
+setDefaultOptions({ locale: ptBRDateFns })
 
 const fontSans = Geist({
   subsets: ['latin'],

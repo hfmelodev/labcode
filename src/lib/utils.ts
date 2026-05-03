@@ -37,3 +37,9 @@ export function formatPrice(price: number) {
     currency: 'BRL',
   }).format(price)
 }
+
+export function formatName(firstName: string, lastName?: string | null) {
+  if (!lastName) return firstName
+
+  return `${firstName} ${lastName}`
+}

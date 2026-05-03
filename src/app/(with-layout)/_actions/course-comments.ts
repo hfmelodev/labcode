@@ -1,5 +1,6 @@
 'use server'
 
+import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { getUser } from './user'
 
@@ -8,6 +9,28 @@ type CreateLessonCommentPayload = {
   lessonId: string
   content: string
   parentId?: string
+}
+
+export async function getLessonComments(lessonId: string) {
+  await getUser()
+
+  const comments = await prisma.lessonComment.findMany({
+    where: { lessonId, parentId: null },
+    include: {
+      user: true,
+      parent: true,
+      replies: {
+        include: {
+          user: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  })
+
+  return comments
 }
 
 export async function createLessonComment({ courseSlug, lessonId, content, parentId }: CreateLessonCommentPayload) {
@@ -47,4 +70,26 @@ export async function createLessonComment({ courseSlug, lessonId, content, paren
   // TODO: Notificar usuários (webhooks, emails, etc)
 
   return comment
+}
+
+export async function deleteComment(commentId: string) {
+  const { userId } = await getUser()
+
+  const isAdmin = await checkUserRole('admin')
+
+  const comment = await prisma.lessonComment.findUnique({
+    where: {
+      id: commentId,
+    },
+  })
+
+  if (!comment) throw new Error('Comentário não encontrado')
+
+  if (!isAdmin && comment.userId !== userId) throw new Error('Você não tem permissão para deletar este comentário')
+
+  await prisma.lessonComment.delete({
+    where: {
+      id: commentId,
+    },
+  })
 }

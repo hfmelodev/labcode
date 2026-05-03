@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { queryKeys } from '@/constants/query-keys'
+import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
   content: z.string().min(1, 'Comentário é obrigatório').max(500, 'Comentário deve ter no máximo 500 caracteres'),
@@ -19,7 +20,15 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-export function CommentInput() {
+type CommentInputProps = {
+  parentCommentId?: string
+  autoFocus?: boolean
+  className?: string
+  onCancel?: () => void
+  onSuccess?: () => void
+}
+
+export function CommentInput({ parentCommentId, autoFocus, onCancel, onSuccess, className }: CommentInputProps) {
   const params = useParams<{ lessonId: string; slug: string }>()
   const lessonId = params.lessonId as string
   const courseSlug = params.slug as string
@@ -42,8 +51,11 @@ export function CommentInput() {
         queryKey: queryKeys.lessonComments(lessonId),
       })
 
-      toast.success('Comentário enviado com sucesso!')
       reset()
+
+      if (onSuccess) onSuccess()
+
+      toast.success('Comentário enviado com sucesso!')
     },
     onError: () => {
       toast.error('Erro ao enviar comentário')
@@ -52,26 +64,36 @@ export function CommentInput() {
 
   async function onSubmit({ content }: FormData) {
     createComment({
-      lessonId,
       courseSlug,
+      lessonId,
       content,
-      parentId: undefined,
+      parentId: parentCommentId,
     })
   }
 
   return (
-    <form className="flex gap-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className={cn('flex gap-4', className)} onSubmit={handleSubmit(onSubmit)}>
       <Avatar src={user?.imageUrl} fallback={user?.fullName} />
 
       <Controller
         control={control}
         name="content"
-        render={({ field }) => <Textarea placeholder="Deixe seu comentário sobre a aula..." className="min-h-24" {...field} />}
+        render={({ field }) => (
+          <Textarea placeholder="Deixe seu comentário sobre a aula..." className="min-h-24" {...field} autoFocus={autoFocus} />
+        )}
       />
 
-      <Button type="submit" disabled={isCreatingComment}>
-        Comentar
-      </Button>
+      <div className="flex gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
+
+        <Button type="submit" disabled={isCreatingComment}>
+          Comentar
+        </Button>
+      </div>
     </form>
   )
 }
