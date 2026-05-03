@@ -3,3 +3,8 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - esbuild
   - prisma
+
+packageExtensions:
+  '@hookform/resolvers@*':
+    peerDependencies:
+      zod: '^4.0.0'

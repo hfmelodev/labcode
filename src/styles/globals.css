@@ -166,4 +166,17 @@
   .scroll-hidden::-webkit-scrollbar {
     @apply hidden;
   }
+
+  /* Configurações globais do Scroll */
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
 }
