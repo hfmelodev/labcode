@@ -95,7 +95,7 @@ export function CreditCardForm({ onBack }: CreditCardFormProps) {
           <div className="col-span-full">
             <FormField control={form.control} name="address" placeholder="Endereço (Opcional)" />
           </div>
-          <FormField control={form.control} name="addressNumber" placeholder="Número" />
+          <FormField name="addressNumber" control={form.control} placeholder="Número" onlyNumbers />
           <FormField control={form.control} name="postalCode" placeholder="CEP" mask="_____-___" />
         </div>
       </div>

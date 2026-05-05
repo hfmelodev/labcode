@@ -9,9 +9,19 @@ type FormFieldProps<T extends FieldValues> = {
   placeholder?: string
   autoComplete?: string
   mask?: string // se não passar, renderiza um Input simples
+  type?: string
+  onlyNumbers?: boolean
 }
 
-export function FormField<T extends FieldValues>({ control, name, placeholder, autoComplete = 'off', mask }: FormFieldProps<T>) {
+export function FormField<T extends FieldValues>({
+  control,
+  name,
+  placeholder,
+  autoComplete = 'off',
+  mask,
+  type,
+  onlyNumbers,
+}: FormFieldProps<T>) {
   return (
     <Controller
       name={name}
@@ -25,6 +35,7 @@ export function FormField<T extends FieldValues>({ control, name, placeholder, a
               component={Input}
               {...field}
               id={field.name}
+              type={type}
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
               autoComplete={autoComplete}
@@ -33,9 +44,14 @@ export function FormField<T extends FieldValues>({ control, name, placeholder, a
             <Input
               {...field}
               id={field.name}
+              type={type}
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
               autoComplete={autoComplete}
+              onChange={({ target }) => {
+                const value = onlyNumbers ? target.value.replace(/\D/g, '') : target.value
+                field.onChange(value)
+              }}
             />
           )}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
