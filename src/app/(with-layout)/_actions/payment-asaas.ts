@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { formatName, unMockValue } from '@/lib/utils'
 import { ServerError } from '@/server/errors'
 import { type PixCheckoutSchema, pixCheckoutSchema } from '@/server/schemas/payment'
+import type { PixResponse } from '../_components/pages/courses/course-details/checkout-dialog/pix'
 import { getUser } from './user'
 
 export async function createCheckoutPix(payload: PixCheckoutSchema) {
@@ -106,5 +107,23 @@ export async function createCheckoutPix(payload: PixCheckoutSchema) {
 
   return {
     invoiceId: data.id as string,
+  }
+}
+
+export async function getPixQrCode(invoiceId: string) {
+  await getUser()
+
+  const { data } = await asaasApi.get<PixResponse>(`/payments/${invoiceId}/pixQrCode`)
+
+  return data
+}
+
+export async function getInvoiceStatus(invoiceId: string) {
+  await getUser()
+
+  const { data } = await asaasApi.get<{ status: string }>(`/payments/${invoiceId}`)
+
+  return {
+    status: data.status as string,
   }
 }

@@ -1,23 +1,39 @@
+'use client'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import axios from 'axios'
+import { ArrowLeft, ArrowRight, Check, Copy } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
-import { createCheckoutPix } from '@/app/(with-layout)/_actions/payment-asaas'
+import { createCheckoutPix, getInvoiceStatus, getPixQrCode } from '@/app/(with-layout)/_actions/payment-asaas'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import { unMockValue } from '@/lib/utils'
 import { pixCheckoutFormSchema } from '@/server/schemas/payment'
 
 type FormData = z.infer<typeof pixCheckoutFormSchema>
 
+export type PixResponse = {
+  encodedImage: string
+  payload: string
+  expirationDate: string
+}
+
 type PixFormProps = {
   onBack: () => void
+  onclose: () => void
   course: Course
 }
 
-export function PixForm({ onBack, course }: PixFormProps) {
+export function PixForm({ onBack, course, onclose }: PixFormProps) {
+  const router = useRouter()
+
   const [step, setStep] = useState(1)
 
   const form = useForm<FormData>({
@@ -30,17 +46,64 @@ export function PixForm({ onBack, course }: PixFormProps) {
     },
   })
 
-  const { handleSubmit } = form
+  const { handleSubmit, watch, setError } = form
 
-  const { mutateAsync: handleCreateInvoice, isPending: isCreatingInvoice } = useMutation({
-    mutationFn: createCheckoutPix,
-    onSuccess: () => {
-      setStep(2)
+  const rawCep = watch('postalCode')
+
+  const { mutateAsync: handleValidateCep, isPending: isValidatingCep } = useMutation({
+    mutationFn: async () => {
+      try {
+        const cep = unMockValue(rawCep)
+
+        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`)
+
+        if (response.data.erro) {
+          setError('postalCode', { type: 'manual', message: 'CEP inválido' })
+          return false
+        }
+
+        return true
+      } catch {
+        setError('postalCode', { type: 'manual', message: 'Erro ao validar CEP, tente novamente.' })
+        return false
+      }
     },
   })
 
-  function onSubmit(data: FormData) {
-    // TODO: Validar o CEP
+  const [isGenerating, setIsGenerating] = useState(true)
+  const [invoiceId, setInvoiceId] = useState<string | null>(null)
+  const [pixData, setPixData] = useState<PixResponse | null>(null)
+
+  const [checkStatusIsDisabled, setCheckStatusIsDisabled] = useState(false)
+
+  const { mutate: handleGetQrCode } = useMutation({
+    mutationFn: getPixQrCode,
+    onSuccess: data => {
+      setIsGenerating(false)
+      setPixData(data)
+    },
+  })
+
+  const { mutateAsync: handleGetStatus, isPending: isLoadingStatus } = useMutation({
+    mutationFn: getInvoiceStatus,
+  })
+
+  const { mutateAsync: handleCreateInvoice, isPending: isCreatingInvoice } = useMutation({
+    mutationFn: createCheckoutPix,
+    onSuccess: async response => {
+      setStep(2)
+      setInvoiceId(response.invoiceId)
+      handleGetQrCode(response.invoiceId)
+    },
+    onError: async response => {
+      toast.warning(response.message)
+    },
+  })
+
+  async function onSubmit(data: FormData) {
+    const isValidCep = await handleValidateCep()
+
+    if (!isValidCep) return
 
     toast.promise(
       handleCreateInvoice({
@@ -54,6 +117,45 @@ export function PixForm({ onBack, course }: PixFormProps) {
         loading: 'Gerando QRCode de Pix...',
       }
     )
+  }
+
+  function handleCopy() {
+    if (!pixData) return
+
+    navigator.clipboard.writeText(pixData?.payload)
+
+    toast.success('Código copiado para a área de transferência')
+  }
+
+  async function handleConfirmPayment() {
+    if (!invoiceId) return
+
+    if (checkStatusIsDisabled) {
+      toast.error('Aguarde um momento antes de verificar o status novamente!')
+      return
+    }
+
+    setCheckStatusIsDisabled(true)
+    setTimeout(() => setCheckStatusIsDisabled(false), 5000)
+
+    const { status } = await handleGetStatus(invoiceId)
+
+    switch (status) {
+      case 'PENDING':
+        toast.info(
+          'Pagamento em processamento. Caso haja instabilidade poderá levar alguns minutos, mas não se preocupe, o curso será adicionado automaticamente à sua conta.'
+        )
+        break
+
+      case 'RECEIVED':
+        toast.success('Pagamento efetuado com sucesso!')
+        onclose()
+        toast.success('Agradecemos por sua compra! Você será redirecionado para o curso em instantes.')
+
+        await new Promise(resolve => setTimeout(resolve, 4000))
+        router.push(`/courses/${course.slug}`)
+        break
+    }
   }
 
   function handleBack() {
@@ -86,9 +188,28 @@ export function PixForm({ onBack, course }: PixFormProps) {
         ) : (
           <>
             {/* Conteúdo do passo 2 */}
-            <div className="w-full">
-              <p className="mt-2 mb-3 text-center">QR CODE DO PIX</p>
-            </div>
+            <>
+              <div className="mx-auto mt-2 flex aspect-square w-[300px] items-center justify-center bg-primary p-3">
+                {pixData?.encodedImage && (
+                  // biome-ignore lint/performance/noImgElement: <false>
+                  <img
+                    className="h-full w-full object-contain"
+                    src={`data:image/png;base64,${pixData?.encodedImage}`}
+                    alt="QRCode do Pix"
+                  />
+                )}
+                {isGenerating && <Skeleton className="w-full flex-1" />}
+              </div>
+
+              <p className="my-4 px-12 text-center">Escaneie o QRCode acima ou copie e cole o código no seu app bancário'</p>
+
+              <div className="flex w-full max-w-[500px] gap-2">
+                <Input placeholder="Gerando QRCode..." value={pixData?.payload ?? ''} readOnly />
+                <Button type="button" disabled={!pixData} onClick={handleCopy}>
+                  Copiar <Copy />
+                </Button>
+              </div>
+            </>
           </>
         )}
 
@@ -99,12 +220,12 @@ export function PixForm({ onBack, course }: PixFormProps) {
           </Button>
 
           {step === 1 ? (
-            <Button type="submit" className="w-full md:w-max" disabled={isCreatingInvoice}>
+            <Button type="submit" className="w-full md:w-max" disabled={isCreatingInvoice || isValidatingCep}>
               Continuar
               <ArrowRight />
             </Button>
           ) : (
-            <Button type="button">
+            <Button type="button" disabled={!pixData || isLoadingStatus} onClick={handleConfirmPayment}>
               Confirmar pagamento
               <Check />
             </Button>
