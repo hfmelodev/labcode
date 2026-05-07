@@ -1,22 +1,35 @@
+'use client'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
+import { ArrowLeft, Check } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
 import Cards from 'react-credit-cards-2'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import type { z } from 'zod'
+import { createCreditCardCheckout } from '@/app/(with-layout)/_actions/payment-asaas'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import { Select } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { calculateInstallmentOptions, formatPrice, unMockValue } from '@/lib/utils'
 import { creditCardCheckoutFormSchema } from '@/server/schemas/payment'
 
 type FormData = z.infer<typeof creditCardCheckoutFormSchema>
 
 type CreditCardFormProps = {
   onBack: () => void
+  onClose: () => void
+  course: Course
 }
 
-export function CreditCardForm({ onBack }: CreditCardFormProps) {
+export function CreditCardForm({ onBack, onClose, course }: CreditCardFormProps) {
+  const router = useRouter()
+
   const form = useForm<FormData>({
     resolver: zodResolver(creditCardCheckoutFormSchema),
     defaultValues: {
@@ -33,18 +46,80 @@ export function CreditCardForm({ onBack }: CreditCardFormProps) {
     },
   })
 
-  const { handleSubmit, watch } = form
+  const { handleSubmit, watch, setError } = form
   const formValues = watch()
 
-  function onSubmit(data: FormData) {
-    console.log(data)
-  }
+  const rawCep = watch('postalCode')
 
-  //   TODO: Criar lógica para pegar as opções das parcelas
-  const installmentsOptions = Array.from({ length: 12 }).map((_, index) => ({
-    label: `${index + 1}x`,
-    value: String(index + 1),
-  }))
+  //   Lógica que pega as opções das parcelas
+  const installmentsOptions = useMemo(() => {
+    return calculateInstallmentOptions(course?.discountPrice ?? course.price).map(option => ({
+      label: `${option.installments}x ${formatPrice(option.installmentValue)}${option.hasInterest ? '' : ' (sem juros)'}`,
+      value: String(option.installments),
+    }))
+  }, [course?.discountPrice, course.price])
+
+  const { mutateAsync: handleValidateCep, isPending: isValidatingCep } = useMutation({
+    mutationFn: async () => {
+      try {
+        const cep = unMockValue(rawCep)
+
+        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`)
+
+        if (response.data.erro) {
+          setError('postalCode', { type: 'manual', message: 'CEP inválido' })
+          return false
+        }
+
+        return true
+      } catch {
+        setError('postalCode', { type: 'manual', message: 'Erro ao validar CEP, tente novamente.' })
+        return false
+      }
+    },
+  })
+
+  const { mutateAsync: handleCreateCheckout, isPending: isLoadingCheckout } = useMutation({
+    mutationFn: createCreditCardCheckout,
+    onSuccess: async () => {
+      toast.success('Pagamento realizado com sucesso!')
+      onClose()
+      toast.success('Agradecemos por sua compra! Você será redirecionado para o curso em instantes.')
+
+      await new Promise(resolve => setTimeout(resolve, 4000))
+      router.push(`/courses/${course.slug}`)
+    },
+    onError: async error => {
+      if (error?.name === 'NOT_AUTHORIZED') {
+        toast.error(error.message)
+        return
+      }
+
+      if (error?.name === 'CONFLICT') {
+        toast.error('Você já possui acesso a este curso!')
+        onClose()
+        return
+      }
+
+      toast.error('Ocorreu um erro ao processar o pagamento. Tente novamente ou entre em contato com o suporte.')
+    },
+  })
+
+  async function onSubmit(data: FormData) {
+    const isValidCep = await handleValidateCep()
+
+    if (!isValidCep) return
+
+    toast.promise(
+      handleCreateCheckout({
+        courseId: course.id,
+        ...data,
+      }),
+      {
+        loading: 'Processando pagamento...',
+      }
+    )
+  }
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit(onSubmit)}>
@@ -106,9 +181,9 @@ export function CreditCardForm({ onBack }: CreditCardFormProps) {
           Voltar
         </Button>
 
-        <Button type="submit">
-          Continuar
-          <ArrowRight />
+        <Button type="submit" disabled={isLoadingCheckout || isValidatingCep}>
+          Confirmar
+          <Check />
         </Button>
       </div>
     </form>

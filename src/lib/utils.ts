@@ -47,3 +47,32 @@ export function formatName(firstName: string, lastName?: string | null) {
 export function unMockValue(value: string) {
   return value.replace(/[^0-9a-z]/gi, '')
 }
+
+export function calculateInstallmentOptions(price: number) {
+  const gatewayFeePercentage = 0.0399 // 3.99% Taxa do Asaas
+  const gatewayFeeFixed = 0.8 // 0.49 Taxa do Asaas
+  const maxInstallments = 12
+  const noInterestInstallments = 6
+
+  const installmentOptions: InstallmentOptions[] = []
+
+  for (let i = 1; i <= maxInstallments; i++) {
+    let total = price
+
+    if (i > noInterestInstallments) {
+      total += total * gatewayFeePercentage + gatewayFeeFixed
+    }
+
+    total = Math.round(total * 100) / 100
+    const installmentValue = Math.round((total / i) * 100) / 100
+
+    installmentOptions.push({
+      installments: i,
+      total,
+      installmentValue,
+      hasInterest: i > noInterestInstallments,
+    })
+  }
+
+  return installmentOptions
+}

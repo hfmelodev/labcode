@@ -19,12 +19,6 @@ import { pixCheckoutFormSchema } from '@/server/schemas/payment'
 
 type FormData = z.infer<typeof pixCheckoutFormSchema>
 
-export type PixResponse = {
-  encodedImage: string
-  payload: string
-  expirationDate: string
-}
-
 type PixFormProps = {
   onBack: () => void
   onclose: () => void

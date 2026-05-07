@@ -263,8 +263,8 @@
     "shortDescription": "Aprenda a criar aplicações dinâmicas com Vue.js.",
     "description": "Aprenda a criar aplicações dinâmicas com Vue.js.",
     "thumbnail": "/sample-courses/vue-iniciantes.png",
-    "price": 21000,
-    "discountPrice": 17000,
+    "price": 210,
+    "discountPrice": 170,
     "tags": ["Vue.js", "Frontend", "JavaScript"],
     "modules": [
       {
@@ -371,8 +371,8 @@
     "shortDescription": "Domine o desenvolvimento de APIs com Spring Boot.",
     "description": "Domine o desenvolvimento de APIs com Spring Boot.",
     "thumbnail": "/sample-courses/spring-boot-essencial.png",
-    "price": 25000,
-    "discountPrice": 20000,
+    "price": 250,
+    "discountPrice": 200,
     "tags": ["Spring Boot", "Java", "Backend"],
     "modules": [
       {
@@ -479,8 +479,8 @@
     "shortDescription": "Crie interfaces intuitivas e centradas no usuário.",
     "description": "Crie interfaces intuitivas e centradas no usuário.",
     "thumbnail": "/sample-courses/ux-essencial.png",
-    "price": 15000,
-    "discountPrice": 12000,
+    "price": 150,
+    "discountPrice": 120,
     "tags": ["UX Design", "UI", "Design"],
     "modules": [
       {
@@ -551,8 +551,8 @@
     "shortDescription": "Aprenda os fundamentos de aprendizado de máquina.",
     "description": "Aprenda os fundamentos de aprendizado de máquina.",
     "thumbnail": "/sample-courses/machine-learning.png",
-    "price": 30000,
-    "discountPrice": 25000,
+    "price": 300,
+    "discountPrice": 250,
     "tags": ["Machine Learning", "Python", "Data Science"],
     "modules": [
       {
