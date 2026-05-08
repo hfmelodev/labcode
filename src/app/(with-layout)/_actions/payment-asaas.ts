@@ -135,7 +135,6 @@ export async function createCreditCardCheckout(payload: CreditCardCheckoutSchema
     installments,
     cpf: rawCpf,
     postalCode: rawPostalCode,
-    address,
     addressNumber,
     phone,
   } = input.data

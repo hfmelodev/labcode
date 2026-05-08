@@ -2,9 +2,12 @@
 
 import 'react-credit-cards-2/dist/es/styles-compiled.css'
 
+import { useUser } from '@clerk/nextjs'
 import { ArrowRight, CreditCard } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { FaPix } from 'react-icons/fa6'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
@@ -31,11 +34,21 @@ const paymentMethods = [
 ]
 
 export function CheckoutDialog({ open, setOpen, course }: CheckoutDialogProps) {
+  const { user } = useUser()
+
+  const pathname = usePathname()
+  const router = useRouter()
+
   const [step, setStep] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('PIX')
 
   function handleContinue() {
-    // TODO: Valida se o usuário já esta logado
+    if (!user) {
+      toast.info('Faça seu login ou crie uma conta para prosseguir com a compra.')
+
+      router.push(`/auth/sign-in?redirect_url=${pathname}?checkout=true`)
+      return
+    }
 
     setStep(2)
   }
