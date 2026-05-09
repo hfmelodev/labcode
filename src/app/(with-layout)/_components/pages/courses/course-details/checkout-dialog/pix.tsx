@@ -64,7 +64,7 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
     },
   })
 
-  const [isGenerating, setIsGenerating] = useState(true)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const [pixData, setPixData] = useState<PixResponse | null>(null)
 
@@ -73,8 +73,12 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
   const { mutate: handleGetQrCode } = useMutation({
     mutationFn: getPixQrCode,
     onSuccess: data => {
-      setIsGenerating(false)
       setPixData(data)
+      setIsGenerating(false)
+    },
+    onError: () => {
+      setIsGenerating(false)
+      toast.error('Erro ao carregar QRCode. Tente fechar e abrir novamente.')
     },
   })
 
@@ -85,6 +89,7 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
   const { mutateAsync: handleCreateInvoice, isPending: isCreatingInvoice } = useMutation({
     mutationFn: createCheckoutPix,
     onSuccess: async response => {
+      setIsGenerating(true)
       setStep(2)
       setInvoiceId(response.invoiceId)
       handleGetQrCode(response.invoiceId)
@@ -191,18 +196,21 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
             {/* Conteúdo do passo 2 */}
             <>
               <div className="mx-auto mt-2 flex aspect-square w-[300px] items-center justify-center bg-primary p-3">
-                {pixData?.encodedImage && (
+                {isGenerating ? (
+                  <Skeleton className="h-full w-full" />
+                ) : pixData?.encodedImage ? (
                   // biome-ignore lint/performance/noImgElement: <false>
                   <img
                     className="h-full w-full object-contain"
-                    src={`data:image/png;base64,${pixData?.encodedImage}`}
+                    src={`data:image/png;base64,${pixData.encodedImage}`}
                     alt="QRCode do Pix"
                   />
+                ) : (
+                  <p className="text-center text-sm text-white opacity-70">Não foi possível carregar o QRCode</p>
                 )}
-                {isGenerating && <Skeleton className="w-full flex-1" />}
               </div>
 
-              <p className="my-4 px-12 text-center">Escaneie o QRCode acima ou copie e cole o código no seu app bancário'</p>
+              <p className="my-4 px-12 text-center">Escaneie o QRCode acima ou copie e cole o código no seu app bancário</p>
 
               <div className="flex w-full max-w-[500px] gap-2">
                 <Input placeholder="Gerando QRCode..." value={pixData?.payload ?? ''} readOnly />

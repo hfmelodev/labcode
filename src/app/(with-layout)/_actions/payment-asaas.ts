@@ -59,13 +59,6 @@ export async function createCheckoutPix(payload: PixCheckoutSchema) {
     })
   }
 
-  await prisma.coursePurchase.create({
-    data: {
-      courseId,
-      userId,
-    },
-  })
-
   let customerId = user?.asaasId
 
   // Cria o cliente no Asaas se ele não existir
@@ -106,7 +99,7 @@ export async function createCheckoutPix(payload: PixCheckoutSchema) {
     value: price,
     dueDate: new Date().toISOString().split('T')[0] as string,
     description: `Compra do curso: ${course.title}`,
-    externalReference: `${userId}-${courseId}`,
+    externalReference: courseId,
   }
 
   const { data } = await asaasApi.post('/payments', paymentPayload)
