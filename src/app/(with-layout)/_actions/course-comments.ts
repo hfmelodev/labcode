@@ -48,7 +48,17 @@ export async function createLessonComment({ courseSlug, lessonId, content, paren
 
   if (!course) throw new Error('Curso não encontrado')
 
-  // TODO: Validar se o usuário é o dono do curso
+  // Validar se o usuário é o dono do curso
+  const userHashCourse = await prisma.coursePurchase.findFirst({
+    where: {
+      courseId: course.id,
+      userId,
+    },
+  })
+
+  if (!userHashCourse) {
+    throw new Error('Você não tem permissão para comentar neste curso')
+  }
 
   const lesson = await prisma.courseLesson.findUnique({
     where: {

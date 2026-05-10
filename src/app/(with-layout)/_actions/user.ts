@@ -3,10 +3,30 @@
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 
-export async function getUser() {
+type FilledUser = {
+  user: NonNullable<Awaited<ReturnType<typeof prisma.user.findUnique>>>
+  clerkUserId: string
+  userId: string
+}
+
+type EmptyUser = {
+  user: null
+  clerkUserId: null
+  userId: null
+}
+// Function Overloading é quando você exporta a função mais de uma vez com parâmetros diferentes
+export async function getUser(throwError?: true): Promise<FilledUser>
+export async function getUser(throwError: false): Promise<FilledUser | EmptyUser>
+
+export async function getUser(throwError = true): Promise<FilledUser | EmptyUser> {
   const { userId } = await auth()
 
-  if (!userId) throw new Error('Unauthorized')
+  const emptyUser: EmptyUser = { user: null, clerkUserId: null, userId: null }
+
+  if (!userId) {
+    if (!throwError) return emptyUser
+    throw new Error('Unauthorized')
+  }
 
   const user = await prisma.user.findUnique({
     where: {
@@ -14,7 +34,10 @@ export async function getUser() {
     },
   })
 
-  if (!user) throw new Error('User not found')
+  if (!user) {
+    if (!throwError) return emptyUser
+    throw new Error('User not found')
+  }
 
   return {
     user,

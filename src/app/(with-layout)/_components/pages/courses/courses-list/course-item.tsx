@@ -5,11 +5,15 @@ import { Badge } from '@/components/ui/badge'
 
 interface CourseItemProps {
   course: CourseWithTagsAndModules
+  redirectTo?: 'lessons' | 'details'
 }
 
-export function CourseItem({ course }: CourseItemProps) {
+export function CourseItem({ course, redirectTo = 'details' }: CourseItemProps) {
   return (
-    <Link href={`/courses/details/${course.slug}`} className="overflow-hidden border bg-card transition-all hover:border-primary">
+    <Link
+      href={redirectTo === 'details' ? `/courses/details/${course.slug}` : `/courses/${course.slug}`}
+      className="overflow-hidden border bg-card transition-all hover:border-primary"
+    >
       <Image
         src={course.thumbnail}
         alt={`Thumbnail do curso ${course.title}`}

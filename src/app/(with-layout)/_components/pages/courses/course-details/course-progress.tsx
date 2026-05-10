@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getCourseProgress } from '@/app/(with-layout)/_actions/course-progress'
+import { getPurchasedCourses } from '@/app/(with-layout)/_actions/courses'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { queryKeys } from '@/constants/query-keys'
@@ -26,7 +27,12 @@ export function CourseProgress({ course }: CourseProgressProps) {
     if (checkoutParam === 'true') setShowCheckoutDialog(true)
   }, [checkoutParam])
 
-  const hasCourse = false
+  const { data: purchasedCourses } = useQuery({
+    queryKey: queryKeys.purchasedCourses(),
+    queryFn: () => getPurchasedCourses(),
+  })
+
+  const hasCourse = purchasedCourses?.some(purchasedCourse => purchasedCourse.id === course.id)
 
   const { data: courseProgress } = useQuery({
     queryKey: queryKeys.courseProgress(course.slug),

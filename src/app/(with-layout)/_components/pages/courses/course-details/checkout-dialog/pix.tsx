@@ -234,7 +234,12 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
               <ArrowRight />
             </Button>
           ) : (
-            <Button type="button" disabled={!pixData || isLoadingStatus} onClick={handleConfirmPayment}>
+            <Button
+              type="button"
+              className="w-full md:w-max"
+              disabled={!pixData || isLoadingStatus}
+              onClick={handleConfirmPayment}
+            >
               Confirmar pagamento
               <Check />
             </Button>

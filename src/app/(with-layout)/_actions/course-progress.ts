@@ -19,7 +19,17 @@ export async function markLessonAsCompleted({ courseSlug, lessonId }: CompleteLe
 
   if (!course) throw new Error('Course not found')
 
-  // TODO: Verificar se o usuário está matriculado no curso
+  // Validar se o usuário está matriculado no curso
+  const userHashCourse = await prisma.coursePurchase.findFirst({
+    where: {
+      courseId: course.id,
+      userId,
+    },
+  })
+
+  if (!userHashCourse) {
+    throw new Error('Você não tem permissão para marcar esta aula como concluída')
+  }
 
   const isAlreadyCompleted = await prisma.completedLesson.findFirst({
     where: {

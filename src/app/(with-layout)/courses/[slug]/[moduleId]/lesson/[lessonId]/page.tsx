@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation'
-import { getCourseBySlugOrId } from '../../../../../_actions/courses'
+import { notFound, redirect } from 'next/navigation'
+import { getCourseBySlugOrId, getPurchasedCourses } from '../../../../../_actions/courses'
 import { LessonDetails } from '../../../../../_components/pages/courses/course-page/lesson-details'
 import { ModulesList } from '../../../../../_components/pages/courses/course-page/modules-list'
 import { TopDetails } from '../../../../../_components/pages/courses/course-page/top-details'
@@ -15,7 +15,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
   if (!course) return notFound()
 
-  // TODO: Verificar se o usuário está logado e se tem acesso ao curso
+  // Valida se o usuário tem acesso ao curso
+  const purchasedCourses = await getPurchasedCourses()
+
+  const isPurchased = purchasedCourses.some(purchasedCourse => purchasedCourse.id === course.id)
+
+  if (!isPurchased) return redirect(`/courses/details/${slug}`)
 
   const currentModule = course.modules.find(mod => mod.id === moduleId)
   if (!currentModule) return notFound()

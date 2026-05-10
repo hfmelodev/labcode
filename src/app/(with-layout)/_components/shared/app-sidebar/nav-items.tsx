@@ -1,10 +1,13 @@
 'use client'
 
 import { useUser } from '@clerk/nextjs'
+import { useQuery } from '@tanstack/react-query'
 import { BookOpen, BookUp2, ChartArea, MessageCircle, SquareDashedBottomCode, Trophy, Users } from 'lucide-react'
 import Link from 'next/link'
+import { getPurchasedCourses } from '@/app/(with-layout)/_actions/courses'
 import { Separator } from '@/components/ui/separator'
 import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
+import { queryKeys } from '@/constants/query-keys'
 
 type NavItem = {
   label: string
@@ -17,17 +20,27 @@ export function NavItems() {
 
   const isUserAdmin = user?.publicMetadata.role === 'admin'
 
+  const { data: purchasedCourses } = useQuery({
+    queryKey: queryKeys.purchasedCourses(),
+    queryFn: () => getPurchasedCourses(),
+  })
+
   const navItems: NavItem[] = [
     {
       label: 'Cursos',
       path: '/',
       icon: SquareDashedBottomCode,
     },
-    {
-      label: 'Meus Cursos',
-      path: '/my-courses',
-      icon: BookUp2,
-    },
+    // Mostra link de "Meus Cursos" apenas se o usuário tiver cursos comprados
+    ...(!!purchasedCourses?.length
+      ? [
+          {
+            label: 'Meus Cursos',
+            path: '/my-courses',
+            icon: BookUp2,
+          },
+        ]
+      : []),
     {
       label: 'Ranking',
       path: '/ranking',

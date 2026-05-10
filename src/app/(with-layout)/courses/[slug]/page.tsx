@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getCourseProgress } from '../../_actions/course-progress'
-import { getCourseBySlugOrId } from '../../_actions/courses'
+import { getCourseBySlugOrId, getPurchasedCourses } from '../../_actions/courses'
 
 type CoursePageProps = {
   params: Promise<{ slug: string }>
@@ -14,7 +14,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
   if (!course) return notFound()
 
-  // TODO: Verificar se o usuário está logado e se tem acesso ao curso
+  // Valida se o usuário tem acesso ao curso
+  const purchasedCourses = await getPurchasedCourses()
+
+  const isPurchased = purchasedCourses.some(purchasedCourse => purchasedCourse.id === course.id)
+
+  if (!isPurchased) return redirect(`/courses/details/${slug}`)
 
   const { completedLessons } = await getCourseProgress(slug)
 

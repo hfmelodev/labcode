@@ -245,8 +245,6 @@ export async function createCreditCardCheckout(payload: CreditCardCheckoutSchema
       })
     }
 
-    console.error(err.response?.data)
-
     const firstErrorDescription = (err.response?.data?.errors?.[0]?.description ?? '') as string
 
     if (firstErrorDescription.includes('não autorizada')) {
@@ -261,6 +259,18 @@ export async function createCreditCardCheckout(payload: CreditCardCheckoutSchema
       code: 'FAILED_TO_CREATE_CUSTOMER',
     })
   }
+
+  // Pagamento aprovado: garante que a compra está salva no banco
+  // independente do webhook ter chegado ou não (evita race condition)
+  const alreadyPurchased = await prisma.coursePurchase.findFirst({
+    where: { userId, courseId },
+  })
+
+  if (!alreadyPurchased) {
+    await prisma.coursePurchase.create({
+      data: { userId, courseId },
+    })
+  }
 }
 
 export async function getPixQrCode(invoiceId: string) {
@@ -272,9 +282,27 @@ export async function getPixQrCode(invoiceId: string) {
 }
 
 export async function getInvoiceStatus(invoiceId: string) {
-  await getUser()
+  const { userId } = await getUser()
 
-  const { data } = await asaasApi.get<{ status: string }>(`/payments/${invoiceId}`)
+  const { data } = await asaasApi.get<{ status: string; externalReference: string }>(
+    `/payments/${invoiceId}`
+  )
+
+  // Se o pagamento foi recebido, garante que a compra está salva no banco
+  // independente do webhook ter chegado ou não (evita race condition)
+  if (data.status === 'RECEIVED') {
+    const courseId = data.externalReference
+
+    const alreadyPurchased = await prisma.coursePurchase.findFirst({
+      where: { userId, courseId },
+    })
+
+    if (!alreadyPurchased) {
+      await prisma.coursePurchase.create({
+        data: { userId, courseId },
+      })
+    }
+  }
 
   return {
     status: data.status as string,
