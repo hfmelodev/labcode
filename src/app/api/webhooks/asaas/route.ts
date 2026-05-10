@@ -20,6 +20,22 @@ export async function POST(req: Request) {
     const customerId = payment.customer
     const courseId = payment.externalReference
 
+    // Adicionado pela IA para validar se o curso existe
+    if (!courseId) {
+      console.warn('Webhook received but no externalReference (courseId) provided')
+      return new Response('Webhook received', { status: 200 })
+    }
+
+    const courseExists = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { id: true },
+    })
+
+    if (!courseExists) {
+      console.warn(`Webhook ignored: Course ${courseId} not found`)
+      return new Response('Webhook received', { status: 200 })
+    }
+
     const user = await prisma.user.findFirst({
       where: {
         asaasId: customerId,
