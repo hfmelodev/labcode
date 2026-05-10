@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 
 const getLastSevenDays = () => {
-  const dates = []
+  const dates: Date[] = []
 
   for (let i = 6; i >= 0; i--) {
     const date = new Date()
@@ -15,22 +15,38 @@ const getLastSevenDays = () => {
   return dates
 }
 
+const getDateKey = (date: Date) => date.toISOString().split('T')[0]
+
+const buildStatsByDay = (items: { createdAt: Date }[]) => {
+  const lastSevenDays = getLastSevenDays()
+  const counts = new Map(lastSevenDays.map(date => [getDateKey(date), 0] as [string, number]))
+
+  for (const item of items) {
+    const dateKey = getDateKey(item.createdAt)
+    counts.set(dateKey, (counts.get(dateKey) ?? 0) + 1)
+  }
+
+  return lastSevenDays.map(date => ({
+    date,
+    count: counts.get(getDateKey(date)) ?? 0,
+  }))
+}
+
 export async function getNewUsersStats(): Promise<StatsChartData[]> {
   const sevenDaysAgo = new Date()
 
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0, 0, 0, 0)
 
-  const users = await prisma.user.groupBy({
-    by: ['createdAt'],
+  const users = await prisma.user.findMany({
     where: {
       createdAt: {
         // Significa "maior ou igual a 7 dias atrás"
         gte: sevenDaysAgo,
       },
     },
-    _count: {
-      _all: true,
+    select: {
+      createdAt: true,
     },
     orderBy: {
       // Ordena por data de criação de forma ascendente (do mais antigo para o mais recente)
@@ -38,18 +54,7 @@ export async function getNewUsersStats(): Promise<StatsChartData[]> {
     },
   })
 
-  const lastSevenDays = getLastSevenDays()
-
-  const usersCounts = new Map(
-    users.map(user => [user.createdAt.toISOString().split('T')[0], user._count._all] as [string, number])
-  )
-
-  const stats = lastSevenDays.map(date => ({
-    date,
-    count: usersCounts.get(date.toISOString().split('T')[0]) || 0,
-  }))
-
-  return stats
+  return buildStatsByDay(users)
 }
 
 export async function getPurchasedCoursesStats(): Promise<StatsChartData[]> {
@@ -58,16 +63,15 @@ export async function getPurchasedCoursesStats(): Promise<StatsChartData[]> {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0, 0, 0, 0)
 
-  const purchases = await prisma.coursePurchase.groupBy({
-    by: ['createdAt'],
+  const purchases = await prisma.coursePurchase.findMany({
     where: {
       createdAt: {
         // Significa "maior ou igual a 7 dias atrás"
         gte: sevenDaysAgo,
       },
     },
-    _count: {
-      _all: true,
+    select: {
+      createdAt: true,
     },
     orderBy: {
       // Ordena por data de criação de forma ascendente (do mais antigo para o mais recente)
@@ -75,16 +79,5 @@ export async function getPurchasedCoursesStats(): Promise<StatsChartData[]> {
     },
   })
 
-  const lastSevenDays = getLastSevenDays()
-
-  const purchasesCounts = new Map(
-    purchases.map(purchase => [purchase.createdAt.toISOString().split('T')[0], purchase._count._all] as [string, number])
-  )
-
-  const stats = lastSevenDays.map(date => ({
-    date,
-    count: purchasesCounts.get(date.toISOString().split('T')[0]) || 0,
-  }))
-
-  return stats
+  return buildStatsByDay(purchases)
 }
