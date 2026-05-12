@@ -44,6 +44,15 @@ export function formatName(firstName: string, lastName?: string | null) {
   return `${firstName} ${lastName}`
 }
 
+export function formatStatus(status: CourseStatus) {
+  switch (status) {
+    case 'PUBLISHED':
+      return 'Publicado'
+    case 'DRAFT':
+      return 'Rascunho'
+  }
+}
+
 export function unMockValue(value: string) {
   return value.replace(/[^0-9a-z]/gi, '')
 }

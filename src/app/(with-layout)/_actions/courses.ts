@@ -1,5 +1,6 @@
 'use server'
 
+import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { getUser } from './user'
 
@@ -99,4 +100,22 @@ export async function getPurchasedCoursesWithDetails() {
   const purchasedCourses = await getPurchasedCourses(true)
 
   return purchasedCourses as CourseWithTagsAndModules[]
+}
+
+export async function getAdminCourses() {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const courses = await prisma.course.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    include: {
+      tags: true,
+      modules: true,
+    },
+  })
+
+  return courses
 }
