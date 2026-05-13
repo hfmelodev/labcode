@@ -29,12 +29,6 @@ const nextConfig: NextConfig = {
 
     return config
   },
-  images: {
-    // Significa que a aplicação não vai otimizar as imagens, ou seja, não vai redimensionar as imagens para diferentes tamanhos de tela.
-    // Isso é útil para imagens que não precisam ser otimizadas, como imagens que já estão em um tamanho adequado.
-    // No futuro, quando tivermos problemas com o tamanho das imagens, podemos remover essa opção.
-    unoptimized: true,
-  },
 }
 
 export default nextConfig

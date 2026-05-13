@@ -1,5 +1,6 @@
 onlyBuiltDependencies:
   - '@clerk/shared'
+  - '@fission-ai/openspec'
   - '@prisma/engines'
   - esbuild
   - prisma
@@ -7,4 +8,4 @@ onlyBuiltDependencies:
 packageExtensions:
   '@hookform/resolvers@*':
     peerDependencies:
-      zod: '^4.0.0'
+      zod: ^4.0.0

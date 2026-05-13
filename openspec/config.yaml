@@ -1,0 +1,29 @@
+schema: spec-driven
+context: |
+  # LabCode
+
+  Plataforma de cursos online (LMS) construída com Next.js 16 fullstack (App Router).
+
+  ## Stack
+  - Framework: Next.js 16 com App Router e Turbopack
+  - Linguagem: TypeScript
+  - Banco de dados: PostgreSQL via Prisma ORM
+  - Autenticação: Clerk
+  - Estilização: Tailwind CSS + shadcn/ui
+  - Validação: Zod + React Hook Form
+  - Gerenciador de pacotes: pnpm (monorepo com pnpm workspaces)
+
+  ## Estrutura principal
+  - `src/app/` — rotas Next.js (App Router)
+    - `(auth)/` — páginas de autenticação (Clerk)
+    - `admin/` — painel administrativo
+    - `api/` — rotas de API
+  - `src/components/` — componentes React reutilizáveis
+  - `src/lib/` — utilitários, helpers, configurações
+  - `prisma/` — schema e migrations do banco de dados
+
+  ## Domínio
+  - Instrutores criam cursos com capítulos e aulas
+  - Alunos compram e assistem cursos
+  - Painel admin com estatísticas, gestão de cursos e usuários
+  - Sistema de progresso por aula
