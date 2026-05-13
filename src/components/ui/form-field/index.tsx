@@ -1,12 +1,13 @@
 import { InputMask } from '@react-input/mask'
 import { type Control, Controller, type FieldValues, type Path } from 'react-hook-form'
-import { Field, FieldError } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 type FormFieldProps<T extends FieldValues> = {
   control: Control<T>
   name: Path<T>
   placeholder?: string
+  label?: string
   autoComplete?: string
   mask?: string // se não passar, renderiza um Input simples
   type?: string
@@ -17,6 +18,7 @@ export function FormField<T extends FieldValues>({
   control,
   name,
   placeholder,
+  label,
   autoComplete = 'off',
   mask,
   type,
@@ -28,6 +30,7 @@ export function FormField<T extends FieldValues>({
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
+          {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
           {mask ? (
             <InputMask
               mask={mask}
@@ -39,6 +42,7 @@ export function FormField<T extends FieldValues>({
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
               autoComplete={autoComplete}
+              className="placeholder:text-sm"
             />
           ) : (
             <Input
@@ -48,6 +52,7 @@ export function FormField<T extends FieldValues>({
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
               autoComplete={autoComplete}
+              className="placeholder:text-sm"
               onChange={({ target }) => {
                 const value = onlyNumbers ? target.value.replace(/\D/g, '') : target.value
                 field.onChange(value)
