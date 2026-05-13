@@ -2,15 +2,19 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CourseDifficulty } from 'generated/prisma/enums'
 import { useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
+import { Dropzone } from '@/components/ui/dropzone'
 import { FieldLabel } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import MultipleSelector, { type Option } from '@/components/ui/multiple-selector'
+import { Select } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { queryKeys } from '@/constants/query-keys'
+import { formatDifficulty } from '@/lib/utils'
 import type { CreateCourseFormData } from '@/server/schemas/course'
 import { createCourseSchema } from '@/server/schemas/course'
 
@@ -51,6 +55,21 @@ export function CourseForm() {
   })
 
   const tagsOptions = useMemo(() => (tagsData ?? []).map(tag => ({ label: tag.name, value: tag.id })), [tagsData])
+
+  const difficultyOptions = [
+    {
+      label: formatDifficulty(CourseDifficulty.EASY),
+      value: CourseDifficulty.EASY,
+    },
+    {
+      label: formatDifficulty(CourseDifficulty.MEDIUM),
+      value: CourseDifficulty.MEDIUM,
+    },
+    {
+      label: formatDifficulty(CourseDifficulty.HARD),
+      value: CourseDifficulty.HARD,
+    },
+  ]
 
   const selectedTags = useMemo(() => {
     return tagsOptions.filter(tag => tagsIds.includes(tag.value))
@@ -112,6 +131,27 @@ export function CourseForm() {
                 className="placeholder:text-sm"
                 disabled={isCreatingTag}
               />
+            </div>
+          )}
+        />
+
+        <Controller
+          name="difficulty"
+          control={control}
+          render={({ field }) => (
+            <div className="space-y-3">
+              <FieldLabel htmlFor={field.name}>Dificuldade</FieldLabel>
+              <Select options={difficultyOptions} value={field.value} onChange={field.onChange} />
+            </div>
+          )}
+        />
+
+        <Controller
+          name="thumbnail"
+          control={control}
+          render={({ field }) => (
+            <div className="col-span-full">
+              <Dropzone setFile={field.onChange} file={field.value} />
             </div>
           )}
         />
