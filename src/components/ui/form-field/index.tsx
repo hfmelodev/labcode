@@ -12,6 +12,7 @@ type FormFieldProps<T extends FieldValues> = {
   mask?: string // se não passar, renderiza um Input simples
   type?: string
   onlyNumbers?: boolean
+  className?: string
 }
 
 export function FormField<T extends FieldValues>({
@@ -23,6 +24,7 @@ export function FormField<T extends FieldValues>({
   mask,
   type,
   onlyNumbers,
+  className,
 }: FormFieldProps<T>) {
   return (
     <Controller
@@ -52,7 +54,7 @@ export function FormField<T extends FieldValues>({
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
               autoComplete={autoComplete}
-              className="placeholder:text-sm"
+              className={`${className} placeholder:text-sm`}
               onChange={({ target }) => {
                 const value = onlyNumbers ? target.value.replace(/\D/g, '') : target.value
                 field.onChange(value)

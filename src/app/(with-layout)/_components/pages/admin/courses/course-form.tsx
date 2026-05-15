@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CourseDifficulty } from 'generated/prisma/enums'
 import { useMemo } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
 import { Dropzone } from '@/components/ui/dropzone'
@@ -18,6 +18,7 @@ import { queryKeys } from '@/constants/query-keys'
 import { formatDifficulty } from '@/lib/utils'
 import type { CreateCourseFormData } from '@/server/schemas/course'
 import { createCourseSchema } from '@/server/schemas/course'
+import { ModulesList } from './modules-list'
 
 export function CourseForm() {
   const form = useForm<CreateCourseFormData>({
@@ -106,69 +107,75 @@ export function CourseForm() {
 
       <Separator className="my-2" />
 
-      <form className="grid gap-6 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
-        <FormField control={control} name="title" label="Título" placeholder="Curso de React" />
-        <FormField
-          control={control}
-          name="shortDescription"
-          label="Descrição curta (opcional)"
-          placeholder="Aprenda a criar uma aplicação de gerenciamento de tarefas."
-        />
-        <FormField control={control} name="price" label="Preço" placeholder="100" />
-        <FormField control={control} name="discountPrice" label="Preço promocional (opcional)" placeholder="89.99" />
+      <FormProvider {...form}>
+        <form className="grid gap-6 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+          <FormField control={control} name="title" label="Título" placeholder="Curso de React" />
+          <FormField
+            control={control}
+            name="shortDescription"
+            label="Descrição curta (opcional)"
+            placeholder="Aprenda a criar uma aplicação de gerenciamento de tarefas."
+          />
+          <FormField control={control} name="price" label="Preço" placeholder="100" />
+          <FormField control={control} name="discountPrice" label="Preço promocional (opcional)" placeholder="89.99" />
 
-        <Controller
-          name="tagsIds"
-          control={control}
-          render={({ field }) => (
-            <div className="space-y-3">
-              <FieldLabel htmlFor={field.name}>Tags</FieldLabel>
-              <MultipleSelector
-                options={tagsOptions}
-                creatable
-                value={selectedTags}
-                onChange={value => handleChangeTags(value)}
-                placeholder="Selecione as tags"
-                className="placeholder:text-sm"
-                disabled={isCreatingTag}
-              />
-            </div>
-          )}
-        />
+          <Controller
+            name="tagsIds"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-3">
+                <FieldLabel htmlFor={field.name}>Tags</FieldLabel>
+                <MultipleSelector
+                  options={tagsOptions}
+                  creatable
+                  value={selectedTags}
+                  onChange={value => handleChangeTags(value)}
+                  placeholder="Selecione as tags"
+                  className="placeholder:text-sm"
+                  disabled={isCreatingTag}
+                />
+              </div>
+            )}
+          />
 
-        <Controller
-          name="difficulty"
-          control={control}
-          render={({ field }) => (
-            <div className="space-y-3">
-              <FieldLabel htmlFor={field.name}>Dificuldade</FieldLabel>
-              <Select options={difficultyOptions} value={field.value} onChange={field.onChange} />
-            </div>
-          )}
-        />
+          <Controller
+            name="difficulty"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-3">
+                <FieldLabel htmlFor={field.name}>Dificuldade</FieldLabel>
+                <Select options={difficultyOptions} value={field.value} onChange={field.onChange} />
+              </div>
+            )}
+          />
 
-        <Controller
-          name="thumbnail"
-          control={control}
-          render={({ field }) => (
-            <div className="col-span-full space-y-3">
-              <FieldLabel htmlFor={field.name}>Thumbnail</FieldLabel>
-              <Dropzone setFile={field.onChange} file={field.value} />
-            </div>
-          )}
-        />
+          <Controller
+            name="thumbnail"
+            control={control}
+            render={({ field }) => (
+              <div className="col-span-full space-y-3">
+                <FieldLabel htmlFor={field.name}>Thumbnail</FieldLabel>
+                <Dropzone setFile={field.onChange} file={field.value} />
+              </div>
+            )}
+          />
 
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <div className="col-span-full space-y-3">
-              <FieldLabel htmlFor={field.name}>Descrição</FieldLabel>
-              <Editor value={field.value} onChange={field.onChange} />
-            </div>
-          )}
-        />
-      </form>
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <div className="col-span-full space-y-3">
+                <FieldLabel htmlFor={field.name}>Descrição</FieldLabel>
+                <Editor value={field.value} onChange={field.onChange} />
+              </div>
+            )}
+          />
+
+          <Separator className="col-span-full my-2" />
+
+          <ModulesList />
+        </form>
+      </FormProvider>
     </>
   )
 }
