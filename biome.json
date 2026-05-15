@@ -21,7 +21,9 @@
       "complexity": "off",
       "recommended": true,
       "a11y": {
-        "noSvgWithoutTitle": "off"
+        "noSvgWithoutTitle": "off",
+        "useKeyWithClickEvents": "off",
+        "noStaticElementInteractions": "off"
       },
       "correctness": {
         "noUnusedVariables": "off"

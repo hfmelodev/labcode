@@ -8,6 +8,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
 import { Dropzone } from '@/components/ui/dropzone'
+import { Editor } from '@/components/ui/editor'
 import { FieldLabel } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import MultipleSelector, { type Option } from '@/components/ui/multiple-selector'
@@ -150,8 +151,20 @@ export function CourseForm() {
           name="thumbnail"
           control={control}
           render={({ field }) => (
-            <div className="col-span-full">
+            <div className="col-span-full space-y-3">
+              <FieldLabel htmlFor={field.name}>Thumbnail</FieldLabel>
               <Dropzone setFile={field.onChange} file={field.value} />
+            </div>
+          )}
+        />
+
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <div className="col-span-full space-y-3">
+              <FieldLabel htmlFor={field.name}>Descrição</FieldLabel>
+              <Editor value={field.value} onChange={field.onChange} />
             </div>
           )}
         />
