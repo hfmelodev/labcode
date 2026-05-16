@@ -1,18 +1,24 @@
 import { GripVertical, Pen, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
+import { AlertDialog } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { CreateCourseFormData } from '@/server/schemas/course'
 import { LessonsList } from './lessons-list'
-import { ManageModuleDialog } from './manage-module-dialog'
+import { ManageLessonDialog } from './manage-lesson-dialog'
+import { ManageModuleDialog, type ModuleFormItem } from './manage-module-dialog'
 
 export function ModulesList() {
   const { control } = useFormContext<CreateCourseFormData>()
 
   const [showManageModuleDialog, setShowManageModuleDialog] = useState(false)
+  const [showManageLessonDialog, setShowManageLessonDialog] = useState(false)
 
-  const { fields } = useFieldArray({
+  const [editingModule, setEditingModule] = useState<ModuleFormItem | null>(null)
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState(0)
+
+  const { fields, remove } = useFieldArray({
     control,
     name: 'modules',
     keyName: '_id',
@@ -23,14 +29,14 @@ export function ModulesList() {
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-xl">Módulos</h2>
 
-        <Button variant="outline" type="button" size="sm" onClick={() => setShowManageModuleDialog(true)}>
+        <Button variant="outline" type="button" onClick={() => setShowManageModuleDialog(true)}>
           <Plus />
           Adicionar módulo
         </Button>
       </div>
 
       <div className="mt-6 flex flex-col gap-4 overflow-hidden">
-        {fields.map(field => (
+        {fields.map((field, index) => (
           <div
             key={field.id}
             className="grid w-full grid-cols-[40px_1fr] items-center overflow-hidden border border-input bg-muted/50"
@@ -48,17 +54,37 @@ export function ModulesList() {
 
                 <div className="flex items-center gap-3">
                   <Tooltip content="Editar módulo">
-                    <Button variant="outline" size="icon-sm">
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={() => {
+                        setEditingModule(field)
+                        setShowManageModuleDialog(true)
+                      }}
+                    >
                       <Pen />
                     </Button>
                   </Tooltip>
+
                   <Tooltip content="Excluir módulo">
-                    <Button variant="outline" size="icon-sm">
-                      <Trash />
-                    </Button>
+                    <AlertDialog
+                      title="Excluir módulo"
+                      description="Tem certeza que deseja excluir este módulo? Isso irá deletar todas as aulas deste módulo."
+                      onConfirm={() => remove(index)}
+                    >
+                      <Button variant="outline" size="icon-sm">
+                        <Trash />
+                      </Button>
+                    </AlertDialog>
                   </Tooltip>
 
-                  <Button variant="secondary">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSelectedModuleIndex(index)
+                      setShowManageLessonDialog(true)
+                    }}
+                  >
                     <Plus />
                     Adicionar aula
                   </Button>
@@ -66,13 +92,20 @@ export function ModulesList() {
               </div>
 
               {/* Detalhes das aulas */}
-              <LessonsList />
+              <LessonsList moduleIndex={index} />
             </div>
           </div>
         ))}
       </div>
 
-      <ManageModuleDialog open={showManageModuleDialog} setOpen={setShowManageModuleDialog} />
+      <ManageModuleDialog
+        open={showManageModuleDialog}
+        setOpen={setShowManageModuleDialog}
+        initialData={editingModule}
+        setInitialData={setEditingModule}
+      />
+
+      <ManageLessonDialog open={showManageLessonDialog} setOpen={setShowManageLessonDialog} moduleIndex={selectedModuleIndex} />
     </div>
   )
 }

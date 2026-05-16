@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createId } from '@paralleldrive/cuid2'
+import { useEffect } from 'react'
 import { useForm, useFormContext } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -14,16 +15,21 @@ const formSchema = z.object({
 
 type ModuleFormData = z.infer<typeof formSchema>
 
+export type ModuleFormItem = ModuleFormData & {
+  id: string
+}
+
 type ManageModuleDialogProps = {
   open: boolean
   setOpen: (open: boolean) => void
+  initialData?: ModuleFormItem | null
+  setInitialData: (data: ModuleFormItem | null) => void
 }
 
-export function ManageModuleDialog({ open, setOpen }: ManageModuleDialogProps) {
-  const { getValues, setValue } = useFormContext<CreateCourseFormData>()
+export function ManageModuleDialog({ open, setOpen, initialData, setInitialData }: ManageModuleDialogProps) {
+  const { getValues, setValue, reset: resetForm } = useFormContext<CreateCourseFormData>()
 
   const form = useForm<ModuleFormData>({
-    shouldUnregister: true,
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
@@ -31,12 +37,41 @@ export function ManageModuleDialog({ open, setOpen }: ManageModuleDialogProps) {
     },
   })
 
-  const { handleSubmit, control } = form
+  const { handleSubmit, control, reset } = form
+
+  const isEditing = !!initialData
+
+  useEffect(() => {
+    if (open && initialData) {
+      reset(initialData)
+    }
+  }, [open, initialData, reset])
+
+  useEffect(() => {
+    if (!open) {
+      reset({ title: '', description: '' })
+      setInitialData(null)
+    }
+  }, [open, reset, setInitialData])
 
   function onSubmit(data: ModuleFormData) {
     const modules = getValues('modules')
 
-    // TODO: Editar módulos
+    // Editar módulo
+    if (isEditing) {
+      const updateModules = modules.map(mod => {
+        if (mod.id === initialData.id) {
+          return { ...mod, ...data }
+        }
+
+        return mod
+      })
+
+      setValue('modules', updateModules, { shouldValidate: true })
+      resetForm(getValues())
+      setOpen(false)
+      return
+    }
 
     // Criar novo módulo
     modules.push({
@@ -48,12 +83,14 @@ export function ManageModuleDialog({ open, setOpen }: ManageModuleDialogProps) {
 
     setValue('modules', modules, { shouldValidate: true })
 
+    resetForm(getValues())
+
     setOpen(false)
   }
 
   return (
     <Dialog
-      title="Adicionar Módulo"
+      title={isEditing ? 'Editar módulo' : 'Adicionar módulo'}
       open={open}
       setOpen={setOpen}
       width="500px"
@@ -62,7 +99,7 @@ export function ManageModuleDialog({ open, setOpen }: ManageModuleDialogProps) {
           <FormField control={control} name="title" label="Título" placeholder="Título do módulo" />
           <FormField control={control} name="description" label="Descrição" placeholder="Descrição do módulo" />
           <Button className="ml-auto max-w-max" onClick={() => handleSubmit(onSubmit)()}>
-            Adicionar
+            {isEditing ? 'Salvar' : 'Adicionar'}
           </Button>
         </form>
       }

@@ -1,3 +1,55 @@
-export function LessonsList() {
-  return <div>Lessons List</div>
+import { GripVertical, Pen, Trash } from 'lucide-react'
+import { useFieldArray, useFormContext } from 'react-hook-form'
+import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
+import type { CreateCourseFormData } from '@/server/schemas/course'
+
+type LessonListProps = {
+  moduleIndex: number
+}
+
+export function LessonsList({ moduleIndex }: LessonListProps) {
+  const { control } = useFormContext<CreateCourseFormData>()
+
+  const { fields } = useFieldArray({
+    control,
+    name: `modules.${moduleIndex}.lessons`,
+    keyName: '_id',
+  })
+
+  return (
+    <div className="bg-muted p-4">
+      {!fields.length && <p className="text-center text-muted-foreground text-sm">Nenhuma aula adicionada</p>}
+
+      <div className="flex flex-col gap-2 overflow-hidden">
+        {fields.map(field => (
+          <div
+            key={field.id}
+            className="grid w-full grid-cols-[30px_1fr] items-center overflow-hidden border border-input bg-card/50"
+          >
+            <div className="flex h-full w-full items-center justify-center bg-muted/50">
+              <GripVertical size={14} />
+            </div>
+
+            <div className="flex h-full w-full items-center justify-between gap-4 p-3">
+              <p className="line-clamp-1">{field.title}</p>
+
+              <div className="flex items-center gap-3">
+                <Tooltip content="Editar aula">
+                  <Button variant="outline" size="icon-sm">
+                    <Pen />
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Excluir aula">
+                  <Button variant="outline" size="icon-sm">
+                    <Trash />
+                  </Button>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }

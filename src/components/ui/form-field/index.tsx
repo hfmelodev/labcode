@@ -56,7 +56,7 @@ export function FormField<T extends FieldValues>({
               autoComplete={autoComplete}
               className={`${className} placeholder:text-sm`}
               onChange={({ target }) => {
-                const value = onlyNumbers ? target.value.replace(/\D/g, '') : target.value
+                const value = onlyNumbers ? Number(target.value.replace(/\D/g, '')) : target.value
                 field.onChange(value)
               }}
             />
