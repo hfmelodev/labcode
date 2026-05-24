@@ -7,9 +7,10 @@ import { useMemo } from 'react'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
+import { Button } from '@/components/ui/button'
 import { Dropzone } from '@/components/ui/dropzone'
 import { Editor } from '@/components/ui/editor'
-import { FieldLabel } from '@/components/ui/field'
+import { FieldError, FieldLabel } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import MultipleSelector, { type Option } from '@/components/ui/multiple-selector'
 import { Select } from '@/components/ui/select'
@@ -116,13 +117,20 @@ export function CourseForm() {
             label="Descrição curta (opcional)"
             placeholder="Aprenda a criar uma aplicação de gerenciamento de tarefas."
           />
-          <FormField control={control} name="price" label="Preço" placeholder="100" />
-          <FormField control={control} name="discountPrice" label="Preço promocional (opcional)" placeholder="89.99" />
+          <FormField control={control} name="price" label="Preço" placeholder="100" onlyNumbers valueAsNumber />
+          <FormField
+            control={control}
+            name="discountPrice"
+            label="Preço promocional (opcional)"
+            placeholder="89.99"
+            onlyNumbers
+            valueAsNumber
+          />
 
           <Controller
             name="tagsIds"
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <div className="space-y-3">
                 <FieldLabel htmlFor={field.name}>Tags</FieldLabel>
                 <MultipleSelector
@@ -134,6 +142,7 @@ export function CourseForm() {
                   className="placeholder:text-sm"
                   disabled={isCreatingTag}
                 />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </div>
             )}
           />
@@ -152,10 +161,11 @@ export function CourseForm() {
           <Controller
             name="thumbnail"
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <div className="col-span-full space-y-3">
                 <FieldLabel htmlFor={field.name}>Thumbnail</FieldLabel>
                 <Dropzone setFile={field.onChange} file={field.value} />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </div>
             )}
           />
@@ -163,10 +173,11 @@ export function CourseForm() {
           <Controller
             name="description"
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <div className="col-span-full space-y-3">
                 <FieldLabel htmlFor={field.name}>Descrição</FieldLabel>
                 <Editor value={field.value} onChange={field.onChange} />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </div>
             )}
           />
@@ -174,6 +185,10 @@ export function CourseForm() {
           <Separator className="col-span-full my-2" />
 
           <ModulesList />
+
+          <div className="col-span-full flex justify-end">
+            <Button type="submit">Criar curso</Button>
+          </div>
         </form>
       </FormProvider>
     </>

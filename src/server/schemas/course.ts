@@ -23,7 +23,7 @@ export type CreateCourseModulePayload = z.infer<typeof courseModuleSchema>
 const courseSchema = z.object({
   title: z.string().nonempty('Título é obrigatório'),
   description: z.string().nonempty('Descrição é obrigatória'),
-  shortDescription: z.string().nonempty('Descrição curta é obrigatória'),
+  shortDescription: z.string().optional(),
   thumbnail: z.instanceof(File, { error: 'Thumbnail é obrigatório' }),
   price: z.number().min(1, 'Preço é obrigatório'),
   discountPrice: z.number().optional(),

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createId } from '@paralleldrive/cuid2'
+import { useEffect } from 'react'
 import { Controller, useForm, useFormContext } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -17,13 +18,19 @@ const formSchema = z.object({
 
 type LessonFormData = z.infer<typeof formSchema>
 
+export type LessonFormItem = LessonFormData & {
+  id: string
+}
+
 type ManageLessonDialogProps = {
   open: boolean
   setOpen: (open: boolean) => void
   moduleIndex: number
+  initialData?: LessonFormItem | null
+  setInitialData: (data: LessonFormItem | null) => void
 }
 
-export function ManageLessonDialog({ open, setOpen, moduleIndex }: ManageLessonDialogProps) {
+export function ManageLessonDialog({ open, setOpen, moduleIndex, initialData, setInitialData }: ManageLessonDialogProps) {
   const { getValues, setValue, reset: resetForm } = useFormContext<CreateCourseFormData>()
 
   const form = useForm<LessonFormData>({
@@ -36,30 +43,57 @@ export function ManageLessonDialog({ open, setOpen, moduleIndex }: ManageLessonD
     },
   })
 
-  const { handleSubmit, control } = form
+  const { handleSubmit, control, reset } = form
+
+  const isEditing = !!initialData
+
+  useEffect(() => {
+    if (open && initialData) {
+      reset(initialData)
+    }
+  }, [open, initialData, reset])
+
+  useEffect(() => {
+    if (!open) {
+      reset({
+        title: '',
+        description: '',
+        videoId: '',
+        durationInMs: 0,
+      })
+      setInitialData(null)
+    }
+  }, [open, reset, setInitialData])
 
   function onSubmit(data: LessonFormData) {
     const modules = getValues('modules')
 
-    // TODO: Editar aulas
+    // Editar aulas
+    if (isEditing) {
+      modules[moduleIndex].lessons = modules[moduleIndex].lessons.map(lesson => {
+        if (lesson.id === initialData.id) {
+          return { ...lesson, ...data }
+        }
 
-    // Criar nova aula
-    modules[moduleIndex].lessons.push({
-      id: createId(),
-      order: 1,
-      ...data,
-    })
+        return lesson
+      })
+    } else {
+      // Criar nova aula
+      modules[moduleIndex].lessons.push({
+        id: createId(),
+        order: 1,
+        ...data,
+      })
+    }
 
     setValue('modules', modules, { shouldValidate: true })
-
     resetForm(getValues())
-
     setOpen(false)
   }
 
   return (
     <Dialog
-      title="Adicionar aula"
+      title={isEditing ? 'Editar aula' : 'Adicionar aula'}
       open={open}
       setOpen={setOpen}
       content={
@@ -76,10 +110,17 @@ export function ManageLessonDialog({ open, setOpen, moduleIndex }: ManageLessonD
           />
           <div className="grid gap-6 md:grid-cols-2">
             <FormField control={control} name="videoId" label="Vídeo" placeholder="ID do vídeo" />
-            <FormField control={control} name="durationInMs" label="Duração" onlyNumbers placeholder="Duração em milissegundos" />
+            <FormField
+              control={control}
+              name="durationInMs"
+              label="Duração"
+              onlyNumbers
+              placeholder="Duração em milissegundos"
+              valueAsNumber
+            />
           </div>
           <Button className="ml-auto max-w-max" onClick={() => handleSubmit(onSubmit)()}>
-            Adicionar
+            {isEditing ? 'Salvar' : 'Adicionar'}
           </Button>
         </form>
       }

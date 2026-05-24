@@ -12,6 +12,7 @@ type FormFieldProps<T extends FieldValues> = {
   mask?: string // se não passar, renderiza um Input simples
   type?: string
   onlyNumbers?: boolean
+  valueAsNumber?: boolean
   className?: string
 }
 
@@ -24,6 +25,7 @@ export function FormField<T extends FieldValues>({
   mask,
   type,
   onlyNumbers,
+  valueAsNumber,
   className,
 }: FormFieldProps<T>) {
   return (
@@ -56,8 +58,8 @@ export function FormField<T extends FieldValues>({
               autoComplete={autoComplete}
               className={`${className} placeholder:text-sm`}
               onChange={({ target }) => {
-                const value = onlyNumbers ? Number(target.value.replace(/\D/g, '')) : target.value
-                field.onChange(value)
+                const stripped = onlyNumbers ? target.value.replace(/\D/g, '') : target.value
+                field.onChange(valueAsNumber ? Number(stripped) : stripped)
               }}
             />
           )}

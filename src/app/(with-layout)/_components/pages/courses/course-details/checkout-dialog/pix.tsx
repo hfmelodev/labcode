@@ -195,7 +195,7 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
           <>
             {/* Conteúdo do passo 2 */}
             <>
-              <div className="mx-auto mt-2 flex aspect-square w-[300px] items-center justify-center bg-primary p-3">
+              <div className="mx-auto mt-2 flex aspect-square w-75 items-center justify-center bg-primary p-3">
                 {isGenerating ? (
                   <Skeleton className="h-full w-full" />
                 ) : pixData?.encodedImage ? (
@@ -212,7 +212,7 @@ export function PixForm({ onBack, course, onclose }: PixFormProps) {
 
               <p className="my-4 px-12 text-center">Escaneie o QRCode acima ou copie e cole o código no seu app bancário</p>
 
-              <div className="flex w-full max-w-[500px] gap-2">
+              <div className="flex w-full max-w-125 gap-2">
                 <Input placeholder="Gerando QRCode..." value={pixData?.payload ?? ''} readOnly />
                 <Button type="button" disabled={!pixData} onClick={handleCopy}>
                   Copiar <Copy />
