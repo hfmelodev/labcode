@@ -538,7 +538,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
             }}
           >
             <CommandList
-              className="z-10 w-full animate-in rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+              className="z-50 w-full animate-in border bg-popover text-popover-foreground shadow-md outline-none"
               onMouseLeave={() => {
                 setOnScrollbar(false)
               }}

@@ -3,9 +3,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CourseDifficulty } from 'generated/prisma/enums'
+import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
-import { createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
+import { toast } from 'sonner'
+import { createCourse, createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
 import { Button } from '@/components/ui/button'
 import { Dropzone } from '@/components/ui/dropzone'
@@ -22,6 +25,8 @@ import { createCourseSchema } from '@/server/schemas/course'
 import { ModulesList } from './modules-list'
 
 export function CourseForm() {
+  const router = useRouter()
+
   const form = useForm<CreateCourseFormData>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
@@ -29,7 +34,7 @@ export function CourseForm() {
       description: '',
       shortDescription: '',
       thumbnail: undefined,
-      price: 0,
+      price: '' as unknown as number,
       discountPrice: '' as unknown as number,
       difficulty: 'EASY',
       tagsIds: [],
@@ -54,6 +59,18 @@ export function CourseForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.courseTags() })
 
       setValue('tagsIds', [...tagsIds, newTag.id], { shouldValidate: true })
+    },
+  })
+
+  const { mutate: handleCreateCourse, isPending: isCreatingCourse } = useMutation({
+    mutationFn: createCourse,
+    onSuccess: () => {
+      toast.success('Curso criado com sucesso!')
+      router.push('/admin/courses')
+    },
+    onError: error => {
+      console.error(error)
+      toast.error('Ocorreu um erro ao criar o curso. Tente novamente mais tarde.')
     },
   })
 
@@ -94,7 +111,19 @@ export function CourseForm() {
   }
 
   async function onSubmit(data: CreateCourseFormData) {
-    console.log(data)
+    const dataWithOrder: CreateCourseFormData = {
+      ...data,
+      modules: data.modules.map((mod, index) => ({
+        ...mod,
+        order: index + 1,
+        lessons: mod.lessons.map((lesson, index) => ({
+          ...lesson,
+          order: index + 1,
+        })),
+      })),
+    }
+
+    handleCreateCourse(dataWithOrder)
   }
 
   return (
@@ -187,7 +216,16 @@ export function CourseForm() {
           <ModulesList />
 
           <div className="col-span-full flex justify-end">
-            <Button type="submit">Criar curso</Button>
+            <Button type="submit" disabled={isCreatingCourse}>
+              {isCreatingCourse ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>Criar curso</>
+              )}
+            </Button>
           </div>
         </form>
       </FormProvider>
