@@ -5,6 +5,7 @@ import slugify from 'slugify'
 import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import { type CreateCourseFormData, createCourseSchema } from '@/server/schemas/course'
+import { uploadFile } from './upload'
 import { getUser } from './user'
 
 type GetCoursesPayload = {
@@ -170,6 +171,10 @@ export async function createCourse(rawData: CreateCourseFormData) {
   const slug = slugCount > 0 ? `${rawSlug}-${slugCount + 1}` : rawSlug
 
   // TODO: Upload thumbnail to Cloudflare R2
+  const { url: thumbnail } = await uploadFile({
+    file: data.thumbnail,
+    path: 'courses-thumbnails',
+  })
 
   const course = await prisma.course.create({
     data: {
@@ -181,7 +186,7 @@ export async function createCourse(rawData: CreateCourseFormData) {
       difficulty: data.difficulty,
       slug,
       status: 'DRAFT',
-      thumbnail: '',
+      thumbnail,
       tags: {
         connect: data.tagsIds.map(id => ({ id })),
       },
