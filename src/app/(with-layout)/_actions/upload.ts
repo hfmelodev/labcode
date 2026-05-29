@@ -1,6 +1,6 @@
 'use server'
 
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { createId } from '@paralleldrive/cuid2'
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID
@@ -62,4 +62,17 @@ export async function uploadFile({ file, path }: UploadFileParams) {
   return {
     url: fileUrl,
   }
+}
+
+export async function deleteFile(url: string) {
+  const objectKey = url.split(`${CLOUDFLARE_FILE_BASE_PATH}/`)[1]
+
+  if (!objectKey) throw new Error('Invalid file URL')
+
+  const command = new DeleteObjectCommand({
+    Bucket: CLOUDFLARE_R2_BUCKET_NAME,
+    Key: objectKey,
+  })
+
+  await S3.send(command)
 }

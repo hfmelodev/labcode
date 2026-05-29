@@ -3,6 +3,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { Pencil, Search, Send, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -86,7 +87,9 @@ const columns: ColumnDef<CourseWithTagsAndModules>[] = [
   {
     header: '',
     accessorKey: 'actions',
-    cell: () => {
+    cell: ({ row }) => {
+      const course = row.original
+
       return (
         <div className="flex items-center justify-end gap-2">
           <Tooltip content="Publicar curso">
@@ -95,9 +98,11 @@ const columns: ColumnDef<CourseWithTagsAndModules>[] = [
             </Button>
           </Tooltip>
           <Tooltip content="Editar">
-            <Button variant="ghost" size="icon">
-              <Pencil />
-            </Button>
+            <Link passHref href={`/admin/courses/edit/${course.id}`}>
+              <Button variant="ghost" size="icon">
+                <Pencil />
+              </Button>
+            </Link>
           </Tooltip>
           <Tooltip content="Excluir">
             <Button variant="ghost" size="icon">

@@ -4,8 +4,13 @@ import { revalidatePath } from 'next/cache'
 import slugify from 'slugify'
 import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
-import { type CreateCourseFormData, createCourseSchema } from '@/server/schemas/course'
-import { uploadFile } from './upload'
+import {
+  type CreateCourseFormData,
+  createCourseSchema,
+  type UpdateCourseFormData,
+  updateCourseSchema,
+} from '@/server/schemas/course'
+import { deleteFile, uploadFile } from './upload'
 import { getUser } from './user'
 
 type GetCoursesPayload = {
@@ -212,4 +217,78 @@ export async function createCourse(rawData: CreateCourseFormData) {
   revalidatePath('/admin/courses')
 
   return course
+}
+
+export async function updateCourse(rawData: UpdateCourseFormData) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const data = updateCourseSchema.parse(rawData)
+
+  const course = await prisma.course.findUnique({
+    where: {
+      id: data.id,
+    },
+    include: {
+      tags: true,
+    },
+  })
+
+  if (!course) throw new Error('Curso não encontrado')
+
+  let slug = course.slug
+  let thumbnailUrl = course.thumbnail
+
+  if (data.title !== course.title) {
+    const rawSlug = slugify(data.title, {
+      lower: true,
+      strict: true,
+    })
+
+    const slugCount = await prisma.course.count({
+      where: {
+        slug: {
+          startsWith: rawSlug,
+        },
+      },
+    })
+
+    slug = slugCount > 0 ? `${rawSlug}-${slugCount + 1}` : rawSlug
+  }
+
+  if (data.thumbnail) {
+    const { url: newThumbnailUrl } = await uploadFile({
+      file: data.thumbnail,
+      path: 'courses-thumbnails',
+    })
+
+    thumbnailUrl = newThumbnailUrl
+
+    await deleteFile(course.thumbnail)
+  }
+
+  const updatedCourse = await prisma.course.update({
+    where: {
+      id: data.id,
+    },
+    data: {
+      title: data.title,
+      shortDescription: data.shortDescription,
+      description: data.description,
+      price: data.price,
+      discountPrice: data.discountPrice,
+      difficulty: data.difficulty,
+      thumbnail: thumbnailUrl,
+      slug,
+      tags: {
+        set: data.tagsIds.map(id => ({ id })),
+      },
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/admin/courses')
+
+  return updatedCourse
 }

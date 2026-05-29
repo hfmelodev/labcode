@@ -4,11 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CourseDifficulty } from 'generated/prisma/enums'
 import { Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useMemo } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { createCourse, createCourseTag, getCourseTags } from '@/app/(with-layout)/_actions/courses'
+import { createCourse, createCourseTag, getCourseTags, updateCourse } from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
 import { Button } from '@/components/ui/button'
 import { Dropzone } from '@/components/ui/dropzone'
@@ -19,13 +19,28 @@ import MultipleSelector, { type Option } from '@/components/ui/multiple-selector
 import { Select } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { queryKeys } from '@/constants/query-keys'
-import { formatDifficulty } from '@/lib/utils'
+import { formatDifficulty, urlToFile } from '@/lib/utils'
 import type { CreateCourseFormData } from '@/server/schemas/course'
 import { createCourseSchema } from '@/server/schemas/course'
 import { ModulesList } from './modules-list'
 
-export function CourseForm() {
+type CourseFormInitialData = Omit<CreateCourseFormData, 'thumbnail'> & {
+  thumbnailUrl: string
+}
+
+type CourseFormData = {
+  initialData?: CourseFormInitialData
+}
+
+export function CourseForm({ initialData }: CourseFormData) {
   const router = useRouter()
+  const params = useParams<{ courseId: string }>()
+
+  const { courseId } = params
+
+  const isEditing = !!initialData
+
+  const [initialDataIsSet, setInitialDataIsSet] = useState(false)
 
   const form = useForm<CreateCourseFormData>({
     resolver: zodResolver(createCourseSchema),
@@ -42,7 +57,32 @@ export function CourseForm() {
     },
   })
 
-  const { handleSubmit, control, setValue, watch } = form
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    reset,
+    formState: { dirtyFields },
+  } = form
+
+  const setInitialData = useCallback(
+    async (data: CourseFormInitialData) => {
+      const thumbnailFile = await urlToFile(data.thumbnailUrl)
+
+      reset({
+        ...data,
+        thumbnail: thumbnailFile,
+      })
+
+      setInitialDataIsSet(true)
+    },
+    [reset]
+  )
+
+  useEffect(() => {
+    if (initialData) setInitialData(initialData)
+  }, [initialData, setInitialData])
 
   const tagsIds = watch('tagsIds')
 
@@ -59,6 +99,18 @@ export function CourseForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.courseTags() })
 
       setValue('tagsIds', [...tagsIds, newTag.id], { shouldValidate: true })
+    },
+  })
+
+  const { mutate: handleUpdateCourse, isPending: isUpdatingCourse } = useMutation({
+    mutationFn: async (data: CreateCourseFormData) => {
+      if (!initialData) return
+
+      await updateCourse({
+        id: courseId,
+        ...data,
+        thumbnail: dirtyFields.thumbnail ? data.thumbnail : undefined,
+      })
     },
   })
 
@@ -123,6 +175,11 @@ export function CourseForm() {
       })),
     }
 
+    if (isEditing) {
+      handleUpdateCourse(dataWithOrder)
+      return
+    }
+
     handleCreateCourse(dataWithOrder)
   }
 
@@ -131,8 +188,12 @@ export function CourseForm() {
       <BackButton />
 
       <div>
-        <h1 className="font-bold text-2xl">Criar curso</h1>
-        <p className="mt-2 text-muted-foreground">Preencha as informações abaixo para criar um novo curso.</p>
+        <h1 className="font-bold text-2xl">{isEditing ? 'Editar curso' : 'Criar curso'}</h1>
+        <p className="mt-2 text-muted-foreground">
+          {isEditing
+            ? 'Preencha as informações abaixo para editar o curso.'
+            : 'Preencha as informações abaixo para criar um novo curso.'}
+        </p>
       </div>
 
       <Separator className="my-2" />
@@ -205,7 +266,7 @@ export function CourseForm() {
             render={({ field, fieldState }) => (
               <div className="col-span-full space-y-3">
                 <FieldLabel htmlFor={field.name}>Descrição</FieldLabel>
-                <Editor value={field.value} onChange={field.onChange} />
+                <Editor key={`editor-field-${initialDataIsSet}`} value={field.value} onChange={field.onChange} />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </div>
             )}
@@ -216,14 +277,14 @@ export function CourseForm() {
           <ModulesList />
 
           <div className="col-span-full flex justify-end">
-            <Button type="submit" disabled={isCreatingCourse}>
-              {isCreatingCourse ? (
+            <Button type="submit" disabled={isCreatingCourse || isUpdatingCourse}>
+              {isCreatingCourse || isUpdatingCourse ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  Criando...
+                  {isUpdatingCourse ? 'Atualizando...' : 'Criando...'}
                 </>
               ) : (
-                <>Criar curso</>
+                <>{isEditing ? 'Atualizar curso' : 'Criar curso'}</>
               )}
             </Button>
           </div>

@@ -85,3 +85,20 @@ export function calculateInstallmentOptions(price: number) {
 
   return installmentOptions
 }
+
+export async function urlToFile(url: string): Promise<File> {
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch image from URL')
+  }
+
+  const blob = await response.blob()
+  const contentType = response.headers.get('Content-Type') || 'application/octet-stream'
+
+  const urlPath = url.split('/').pop() || 'file'
+
+  const parts = urlPath.split('-')
+  const fileName = parts.length > 1 ? parts.slice(1).join('-') : urlPath
+  return new File([blob], fileName, { type: contentType })
+}
