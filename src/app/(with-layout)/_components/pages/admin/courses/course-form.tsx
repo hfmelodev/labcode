@@ -2,13 +2,24 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { dequal } from 'dequal'
 import { CourseDifficulty } from 'generated/prisma/enums'
 import { Loader2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { createCourse, createCourseTag, getCourseTags, updateCourse } from '@/app/(with-layout)/_actions/courses'
+import {
+  createCourse,
+  createCourseModules,
+  createCourseTag,
+  deleteCourseLessons,
+  deleteCourseModules,
+  getCourseTags,
+  revalidateCourseDetails,
+  updateCourse,
+  updateCourseModules,
+} from '@/app/(with-layout)/_actions/courses'
 import { BackButton } from '@/components/app/back-button'
 import { Button } from '@/components/ui/button'
 import { Dropzone } from '@/components/ui/dropzone'
@@ -109,8 +120,62 @@ export function CourseForm({ initialData }: CourseFormData) {
       await updateCourse({
         id: courseId,
         ...data,
+        // dirtyFields significa campos sujos ou seja, campos que foram alterados pelo usuário
         thumbnail: dirtyFields.thumbnail ? data.thumbnail : undefined,
       })
+
+      // Verifica se os dados foram alterados
+      const isModulesUpdated = !dequal(initialData.modules, data.modules)
+
+      if (!isModulesUpdated) {
+        await revalidateCourseDetails(courseId)
+        return
+      }
+
+      // Verifica quais módulos foram removidos
+      const removedModules = initialData.modules.filter(mod => !data.modules.find(m => m.id === mod.id))
+
+      // Busca novas aulas
+      const allLessons = data.modules.flatMap(mod => mod.lessons)
+      // Busca todas as aulas do curso antigas
+      const allInitialLessons = initialData.modules.flatMap(mod => mod.lessons)
+
+      // Busca aulas removidas
+      const removedLessons = allInitialLessons.filter(lesson => !allLessons.find(l => l.id === lesson.id))
+
+      // Busca módulos novos
+      const modulesToCreate = data.modules.filter(mod => !initialData.modules.find(m => m.id === mod.id))
+
+      // Busca módulos que não foram removidos e não foram criados
+      const modulesToUpdate = data.modules.filter(
+        mod => !removedModules.find(m => m.id === mod.id) && !modulesToCreate.find(m => m.id === mod.id)
+      )
+
+      if (!!removedLessons.length) {
+        await deleteCourseLessons(removedLessons.map(lesson => lesson.id))
+      }
+
+      if (!!removedModules.length) {
+        await deleteCourseModules(removedModules.map(mod => mod.id))
+      }
+
+      if (!!modulesToCreate.length) {
+        await createCourseModules(courseId, modulesToCreate)
+      }
+
+      if (!!modulesToUpdate.length) {
+        await updateCourseModules(modulesToUpdate)
+      }
+
+      await revalidateCourseDetails(courseId)
+    },
+    onSuccess: () => {
+      toast.success('Curso atualizado com sucesso!')
+      router.push('/admin/courses')
+    },
+    onError: error => {
+      console.error(error)
+      toast.error('Ocorreu um erro ao atualizar o curso. Tente novamente mais tarde.')
     },
   })
 

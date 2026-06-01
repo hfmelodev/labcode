@@ -2,10 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import slugify from 'slugify'
+import z from 'zod'
 import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
 import {
   type CreateCourseFormData,
+  type CreateCourseModulePayload,
+  courseModuleSchema,
   createCourseSchema,
   type UpdateCourseFormData,
   updateCourseSchema,
@@ -291,4 +294,134 @@ export async function updateCourse(rawData: UpdateCourseFormData) {
   revalidatePath('/admin/courses')
 
   return updatedCourse
+}
+
+export async function deleteCourseLessons(lessonIds: string[]) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  await prisma.courseLesson.deleteMany({
+    where: {
+      id: {
+        in: lessonIds,
+      },
+    },
+  })
+}
+
+export async function deleteCourseModules(moduleIds: string[]) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  await prisma.courseModule.deleteMany({
+    where: {
+      id: {
+        in: moduleIds,
+      },
+    },
+  })
+}
+
+export async function createCourseModules(courseId: string, modules: CreateCourseModulePayload[]) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const schema = z.array(courseModuleSchema)
+
+  const data = schema.parse(modules)
+
+  const courseModules = await Promise.all(
+    data.map(mod =>
+      prisma.courseModule.create({
+        data: {
+          title: mod.title,
+          description: mod.description,
+          order: mod.order,
+          courseId,
+          lessons: {
+            createMany: {
+              data: mod.lessons.map(lesson => ({
+                title: lesson.title,
+                description: lesson.description,
+                durationInMs: lesson.durationInMs,
+                order: lesson.order,
+                videoId: lesson.videoId,
+              })),
+            },
+          },
+        },
+      })
+    )
+  )
+
+  return courseModules
+}
+
+export async function updateCourseModules(modules: CreateCourseModulePayload[]) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const schema = z.array(courseModuleSchema)
+
+  const data = schema.parse(modules)
+
+  await Promise.all(
+    data.map(async mod => {
+      await prisma.courseModule.update({
+        where: {
+          id: mod.id,
+        },
+        data: {
+          title: mod.title,
+          description: mod.description,
+          order: mod.order,
+        },
+      })
+
+      await Promise.all(
+        mod.lessons.map(lesson =>
+          prisma.courseLesson.upsert({
+            where: {
+              id: lesson.id,
+            },
+            update: {
+              order: lesson.order,
+              title: lesson.title,
+              description: lesson.description,
+              durationInMs: lesson.durationInMs,
+              videoId: lesson.videoId,
+            },
+            create: {
+              order: lesson.order,
+              title: lesson.title,
+              description: lesson.description,
+              durationInMs: lesson.durationInMs,
+              videoId: lesson.videoId,
+              moduleId: mod.id,
+            },
+          })
+        )
+      )
+    })
+  )
+}
+
+export async function revalidateCourseDetails(courseId: string) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const course = await prisma.course.findUnique({
+    where: {
+      id: courseId,
+    },
+  })
+
+  if (!course) throw new Error('Curso não encontrado')
+
+  revalidatePath(`/courses/details/${course.slug}`)
 }
