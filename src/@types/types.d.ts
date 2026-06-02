@@ -31,3 +31,8 @@ type StatsChartData = {
   date: Date
   count: number
 }
+
+type AdminUser = User & {
+  purchasedCourses: number
+  completedLessons: number
+}
