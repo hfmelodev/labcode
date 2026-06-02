@@ -425,3 +425,53 @@ export async function revalidateCourseDetails(courseId: string) {
 
   revalidatePath(`/courses/details/${course.slug}`)
 }
+
+export type UpdateCourseStatusPayload = {
+  courseId: string
+  status: CourseStatus
+}
+
+export async function updateCourseStatus({ courseId, status }: UpdateCourseStatusPayload) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const course = await prisma.course.update({
+    where: {
+      id: courseId,
+    },
+    data: {
+      status,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/admin/courses')
+
+  return course
+}
+
+export async function deleteCourse(courseId: string) {
+  const isAdmin = await checkUserRole('admin')
+
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const course = await prisma.course.findUnique({
+    where: {
+      id: courseId,
+    },
+  })
+
+  if (!course) throw new Error('Curso não encontrado')
+
+  await deleteFile(course.thumbnail)
+
+  await prisma.course.delete({
+    where: {
+      id: courseId,
+    },
+  })
+
+  revalidatePath('/')
+  revalidatePath('/admin/courses')
+}
