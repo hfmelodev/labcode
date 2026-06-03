@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
 import { formatName } from '@/lib/utils'
+import { SendNotificationDialog } from '../send-notification-dialog'
 
 type UsersTableProps = {
   users: AdminUser[]
@@ -16,6 +17,8 @@ type UsersTableProps = {
 
 export function UsersTable({ users }: UsersTableProps) {
   const [search, setSearch] = useState('')
+
+  const [showSendNotificationDialog, setShowSendNotificationDialog] = useState(false)
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -81,10 +84,12 @@ export function UsersTable({ users }: UsersTableProps) {
           />
         </div>
 
-        <Button>Enviar Notificações</Button>
+        <Button onClick={() => setShowSendNotificationDialog(true)}>Enviar Notificação</Button>
       </div>
 
       <DataTable columns={columns} data={filteredUsers} />
+
+      <SendNotificationDialog open={showSendNotificationDialog} setOpen={setShowSendNotificationDialog} />
     </>
   )
 }
