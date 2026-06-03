@@ -39,7 +39,7 @@ export function DataTable<TData, TValue>({ columns, data, pagination = true }: D
 
   return (
     <div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
