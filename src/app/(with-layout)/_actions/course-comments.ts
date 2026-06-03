@@ -2,6 +2,7 @@
 
 import { checkUserRole } from '@/lib/clerk'
 import { prisma } from '@/lib/prisma'
+import { formatName } from '@/lib/utils'
 import { getUser } from './user'
 
 type CreateLessonCommentPayload = {
@@ -34,7 +35,7 @@ export async function getLessonComments(lessonId: string) {
 }
 
 export async function createLessonComment({ courseSlug, lessonId, content, parentId }: CreateLessonCommentPayload) {
-  const { userId } = await getUser()
+  const { userId, user } = await getUser()
 
   if (content.length > 500) {
     throw new Error('Comentário deve ter no máximo 500 caracteres')
@@ -78,6 +79,26 @@ export async function createLessonComment({ courseSlug, lessonId, content, paren
   })
 
   // TODO: Notificar usuários (webhooks, emails, etc)
+  if (parentId) {
+    const parentComment = await prisma.lessonComment.findUnique({
+      where: {
+        id: parentId,
+      },
+    })
+
+    const parentUserId = parentComment?.userId
+
+    if (parentUserId && parentUserId !== userId) {
+      await prisma.notification.create({
+        data: {
+          userId: parentUserId,
+          title: 'Nova resposta ao seu comentário',
+          content: `${formatName(user.firstName, user.lastName)} respondeu o seu comentário no curso "${course.title}"`,
+          link: `/courses/${course.slug}/${lesson.moduleId}/lesson/${lessonId}`,
+        },
+      })
+    }
+  }
 
   return comment
 }
