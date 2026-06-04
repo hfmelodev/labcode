@@ -11,3 +11,9 @@ export default async function AdminPage() {
     </>
   )
 }
+
+/**
+ * Força a re-execução do componente a cada requisição sem usar cache do NextJS.
+ * Isso faz com que os dados sejam sempre atualizados.
+ */
+export const dynamic = 'force-dynamic'

@@ -20,3 +20,6 @@ export default async function RankingPage() {
     </>
   )
 }
+
+// A cada hora, gera uma nova página com o ranking atualizado
+export const revalidate = 3600
