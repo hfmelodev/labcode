@@ -1,6 +1,11 @@
 import { Crown } from 'lucide-react'
+import type { Metadata } from 'next'
 import { getRanking } from '../_actions/ranking'
 import { RankingTable } from '../_components/pages/ranking/ranking-table'
+
+export const metadata: Metadata = {
+  title: 'Ranking',
+}
 
 export default async function RankingPage() {
   const ranking = await getRanking()

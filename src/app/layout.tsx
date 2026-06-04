@@ -17,7 +17,10 @@ const fontSans = Geist({
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata = {
-  title: 'LabCode',
+  title: {
+    template: '%s | LabCode',
+    default: 'LabCode',
+  },
   description: 'Desenvolvimento e Software',
   icons: {
     icon: '/labcode-icon.svg',

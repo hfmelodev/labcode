@@ -1,17 +1,52 @@
 import { format } from 'date-fns'
 import { Calendar, Camera, ChartColumnIncreasing, CirclePlay, Clock, LayoutDashboard } from 'lucide-react'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { getCourseBySlugOrId } from '@/app/(with-layout)/_actions/courses'
 import { CourseProgress } from '@/app/(with-layout)/_components/pages/courses/course-details/course-progress'
 import { BackButton } from '@/components/app/back-button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { prisma } from '@/lib/prisma'
 import { cn, formatDifficulty, formatDuration } from '@/lib/utils'
 
 type CourseDetailsPageProps = {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: CourseDetailsPageProps): Promise<Metadata> {
+  const { slug } = await params
+
+  const { course } = await getCourseBySlugOrId(slug)
+
+  if (!course)
+    return {
+      title: 'Curso não encontrado',
+    }
+
+  return {
+    title: course.title,
+    description: course.shortDescription,
+    openGraph: {
+      images: [course.thumbnail],
+    },
+  }
+}
+
+// Gera as rotas estáticas para cada curso publicado
+export async function generateStaticParams() {
+  const courses = await prisma.course.findMany({
+    select: {
+      slug: true,
+    },
+  })
+
+  return courses.map(course => ({
+    slug: course.slug,
+  }))
 }
 
 export default async function CourseDetailsPage({ params }: CourseDetailsPageProps) {
@@ -85,7 +120,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
       <div className="grid w-full gap-10 md:grid-cols-[1fr_400px]">
         {/*Left side*/}
         <Tabs defaultValue="overview">
-          <TabsList className="w-full md:max-w-[300px]">
+          <TabsList className="w-full md:max-w-75">
             <TabsTrigger value="overview">
               <LayoutDashboard />
               Visão Geral
@@ -144,7 +179,9 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
         </Tabs>
 
         {/*Right side*/}
-        <CourseProgress course={course} />
+        <Suspense>
+          <CourseProgress course={course} />
+        </Suspense>
       </div>
     </section>
   )

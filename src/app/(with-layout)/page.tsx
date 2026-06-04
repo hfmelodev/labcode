@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CoursesList } from './_components/pages/courses/courses-list'
@@ -10,6 +11,11 @@ type CoursesPageProps = {
   }>
 }
 
+export const metadata: Metadata = {
+  title: 'Cursos',
+  description: 'Explore nossos cursos e aprenda com especialistas',
+}
+
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const { query, tags } = await searchParams
 
@@ -17,7 +23,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
   return (
     <>
-      <Suspense key={`tags-${suspenseKey}`} fallback={<Skeleton className="h-[22px] min-h-[22px] w-full" />}>
+      <Suspense key={`tags-${suspenseKey}`} fallback={<Skeleton className="h-5.5 min-h-5.5 w-full" />}>
         <CourseTagsList />
       </Suspense>
 

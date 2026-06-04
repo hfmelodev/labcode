@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getPurchasedCoursesWithDetails } from '../_actions/courses'
 import { CourseItem } from '../_components/pages/courses/courses-list/course-item'
+
+export const metadata: Metadata = {
+  title: 'Meus Cursos',
+}
 
 export default async function PurchasedCoursesPage() {
   const courses = await getPurchasedCoursesWithDetails()
