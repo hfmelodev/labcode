@@ -5,12 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 25800",
-    "build": "next build",
+    "build": "prisma migrate deploy && next build",
     "start": "next start --port 25800",
     "format": "biome check --fix",
     "format:check": "biome check",
     "prisma:generate": "prisma generate",
-    "postinstall": "prisma migrate deploy && prisma generate",
+    "postinstall": "prisma generate",
     "tunnel": "bash -lc 'source .env && cloudflared tunnel run --token \"$CLOUDFLARE_TUNNEL_TOKEN\"'"
   },
   "dependencies": {
