@@ -23,7 +23,7 @@ export function LessonComments() {
       <h3 className="font-semibold text-lg">Comentários</h3>
 
       {!comments ? (
-        <Skeleton className="min-h-[200px] w-full" />
+        <Skeleton className="min-h-50 w-full" />
       ) : (
         <>
           {!comments.length && (
