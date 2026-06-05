@@ -10,6 +10,7 @@ import { ItalicToolbar } from '@/components/toolbars/italic'
 import { OrderedListToolbar } from '@/components/toolbars/ordered-list'
 import { StrikeThroughToolbar } from '@/components/toolbars/strikethrough'
 import { ToolbarProvider } from '@/components/toolbars/toolbar-provider'
+import { cn } from '@/lib/utils'
 
 const extensions = [
   StarterKit.configure({
@@ -80,4 +81,24 @@ export function Editor({ value, onChange }: EditorProps) {
       </div>
     </div>
   )
+}
+
+type EditorPreviewProps = {
+  value: string
+  className?: string
+}
+
+export function EditorPreview({ value, className }: EditorPreviewProps) {
+  const editor = useEditor({
+    extensions: extensions as Extension[],
+    content: value,
+    immediatelyRender: false,
+    editable: false,
+  })
+
+  if (!editor) {
+    return null
+  }
+
+  return <EditorContent className={cn(className, 'editor-preview cursor-default outline-none')} editor={editor} readOnly />
 }

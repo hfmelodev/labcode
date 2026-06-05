@@ -1,3 +1,4 @@
+import { EditorPreview } from '@/components/ui/editor'
 import { LessonComments } from './comments'
 import { LessonPlayer } from './lesson-player'
 
@@ -14,7 +15,7 @@ export function LessonDetails({ lesson, nextLesson }: LessonDetailsProps) {
 
       {/* Descrição e comentários */}
       <div className="flex flex-col gap-6 p-6">
-        <p className="text-muted-foreground">{lesson.description}</p>
+        <EditorPreview className="opacity-90" value={lesson.description} />
 
         {/* Comentários */}
         <LessonComments />

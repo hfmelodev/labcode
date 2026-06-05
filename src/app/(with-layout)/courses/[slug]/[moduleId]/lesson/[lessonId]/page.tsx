@@ -1,8 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
-import { getCourseBySlugOrId, getPurchasedCourses } from '../../../../../_actions/courses'
-import { LessonDetails } from '../../../../../_components/pages/courses/course-page/lesson-details'
-import { ModulesList } from '../../../../../_components/pages/courses/course-page/modules-list'
-import { TopDetails } from '../../../../../_components/pages/courses/course-page/top-details'
+import { getCourseBySlugOrId, getPurchasedCourses } from '@/app/(with-layout)/_actions/courses'
+import { LessonDetails } from '@/app/(with-layout)/_components/pages/courses/course-page/lesson-details'
+import { ModulesList } from '@/app/(with-layout)/_components/pages/courses/course-page/modules-list'
+import { TopDetails } from '@/app/(with-layout)/_components/pages/courses/course-page/top-details'
 
 type CoursePageProps = {
   params: Promise<{ slug: string; moduleId: string; lessonId: string }>

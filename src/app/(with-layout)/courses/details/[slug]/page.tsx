@@ -8,6 +8,7 @@ import { getCourseBySlugOrId } from '@/app/(with-layout)/_actions/courses'
 import { CourseProgress } from '@/app/(with-layout)/_components/pages/courses/course-details/course-progress'
 import { BackButton } from '@/components/app/back-button'
 import { Badge } from '@/components/ui/badge'
+import { EditorPreview } from '@/components/ui/editor'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { prisma } from '@/lib/prisma'
@@ -132,7 +133,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
           </TabsList>
 
           <TabsContent value="overview">
-            <p className="mt-4 opacity-90">{course.description}</p>
+            <EditorPreview className="mt-4 opacity-90" value={course.description} />
 
             <Separator className="my-6" />
 

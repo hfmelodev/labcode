@@ -49,7 +49,7 @@ export function ModulesList({ modules }: ModulesListProps) {
   return (
     <aside
       className={cn(
-        'h-full min-w-[380px] max-w-[380px] overflow-x-auto overflow-y-auto',
+        'h-full min-w-95 max-w-95 overflow-x-auto overflow-y-auto',
         'border-border border-l bg-sidebar p-4 transition-all duration-200 ease-in-out',
         'flex flex-col items-center',
         !modulesListCollapsed && 'fixed top-0 right-0 bottom-0 z-10 sm:relative',
